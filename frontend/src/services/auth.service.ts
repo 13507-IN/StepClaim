@@ -1,13 +1,20 @@
 import { api } from './api';
 import { APIResponse, User } from '../types';
 
+const DEFAULT_API_BASE = 'http://localhost:5000/api/v1';
+
+const resolveAuthUrl = (path: string): string => {
+  const base = (api.defaults.baseURL || DEFAULT_API_BASE).replace(/\/+$/, '');
+  return `${base}${path}`;
+};
+
 export const authService = {
   /**
    * Register a new user account.
    * If an avatar file is provided, submits as FormData.
    */
   async register(credentials: FormData): Promise<APIResponse<{ user: User; accessToken: string; refreshToken: string }>> {
-    const { data } = await api.post('/auth/register', credentials, {
+    const { data } = await api.post(resolveAuthUrl('/auth/register'), credentials, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

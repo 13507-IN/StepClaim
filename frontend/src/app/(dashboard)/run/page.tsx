@@ -120,7 +120,7 @@ export default function LiveRunPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col relative h-[calc(100vh-6rem)] min-h-[500px]">
+    <div className="flex-1 flex flex-col relative h-full w-full">
       
       {/* ─── Main Map Container ─── */}
       <div className="flex-1 w-full h-full relative z-0">

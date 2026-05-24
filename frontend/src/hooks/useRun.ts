@@ -43,7 +43,7 @@ export const useRun = () => {
 
   // 3. Mount HTML5 watchPosition coordinates tracker
   const { currentCoords, error: gpsError } = useGPS({
-    enabled: store.isRunning && !store.isPaused,
+    enabled: true,
     onLocationUpdate: handleLocationUpdate,
   });
 

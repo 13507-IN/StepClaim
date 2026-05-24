@@ -1,6 +1,43 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+const DEFAULT_API_URL = 'http://localhost:5000/api/v1';
+
+const getApiUrl = (): string => {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!envUrl || envUrl === 'undefined' || envUrl === 'null') {
+    return DEFAULT_API_URL;
+  }
+
+  const normalized = envUrl.trim();
+
+  // Support relative values like "/api/v1" while still targeting backend :5000.
+  if (normalized.startsWith('/')) {
+    return `http://localhost:5000${normalized}`;
+  }
+
+  if (normalized.startsWith('http')) {
+    try {
+      const parsed = new URL(normalized);
+
+      // Prevent accidental local misrouting to Next.js dev server (:3000).
+      if (
+        (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') &&
+        parsed.port === '3000'
+      ) {
+        return DEFAULT_API_URL;
+      }
+    } catch {
+      return DEFAULT_API_URL;
+    }
+
+    return normalized;
+  }
+
+  return DEFAULT_API_URL;
+};
+
+const API_URL = getApiUrl();
+console.log('[StepClaim] API_URL resolved to:', API_URL);
 
 export const api = axios.create({
   baseURL: API_URL,

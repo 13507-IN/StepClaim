@@ -69,6 +69,29 @@ export const useGPS = ({ enabled, onLocationUpdate }: UseGPSProps) => {
       setError(errMsg);
     };
 
+    console.log('📡 GPS: Fetching quick initial position for instant map centering...');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude, speed, accuracy, altitude } = position.coords;
+        if (accuracy <= 25) {
+          const point: LocationPoint = {
+            latitude,
+            longitude,
+            speed: speed || 0,
+            accuracy,
+            altitude: altitude || undefined,
+            timestamp: position.timestamp,
+          };
+          setCurrentCoords(point);
+          onLocationUpdate(point);
+        }
+      },
+      (err) => {
+        console.warn('⚠️ GPS: Quick initial position fetch failed, relying on watch:', err.message);
+      },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+
     console.log('📡 GPS: Starting geolocation watchPosition...');
     watchIdRef.current = navigator.geolocation.watchPosition(
       successHandler,

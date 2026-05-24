@@ -1,5 +1,6 @@
-// Prisma Schema for StepClaim
-// Real-world territory capture fitness game
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider  = "postgresql"
@@ -7,11 +8,131 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+model User {
+  id               String         @id @default(uuid())
+  username         String         @unique
+  email            String         @unique
+  passwordHash     String         @map("password_hash")
+  avatarUrl        String?        @map("avatar_url")
+  level            Int            @default(1)
+  xp               Int            @default(0)
+  streak           Int            @default(0)
+  totalDistance    Float          @default(0.0) @map("total_distance")
+  territoryCount   Int            @default(0) @map("territory_count")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+  activities       Activity[]
+  cheatLogs        CheatLog[]
+  receivedRequests Friend[]       @relation("receiver")
+  sentRequests     Friend[]       @relation("requester")
+  runs             Run[]
+  territories      Territory[]
+  badges           UserBadge[]
+  locations        UserLocation[]
+
+  @@map("users")
 }
 
-// ─── Enums ───────────────────────────────────────────────────────────────────
+model Run {
+  id           String         @id @default(uuid())
+  userId       String         @map("user_id")
+  startTime    DateTime       @map("start_time")
+  endTime      DateTime?      @map("end_time")
+  distance     Float          @default(0.0)
+  duration     Int            @default(0)
+  averageSpeed Float          @default(0.0) @map("average_speed")
+  xpGained     Int            @default(0) @map("xp_gained")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  user         User           @relation(fields: [userId], references: [id])
+  locations    UserLocation[]
+
+  @@map("runs")
+}
+
+model UserLocation {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  runId     String?  @map("run_id")
+  latitude  Float
+  longitude Float
+  speed     Float    @default(0.0)
+  timestamp DateTime @default(now())
+  run       Run?     @relation(fields: [runId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("user_locations")
+}
+
+model Territory {
+  id            String   @id @default(uuid())
+  gridId        String   @unique @map("grid_id")
+  ownerId       String?  @map("owner_id")
+  capturedAt    DateTime @default(now()) @map("captured_at")
+  lastActivity  DateTime @default(now()) @map("last_activity")
+  capturePoints Int      @default(100) @map("capture_points")
+  owner         User?    @relation(fields: [ownerId], references: [id])
+
+  @@map("territories")
+}
+
+model Activity {
+  id           String       @id @default(uuid())
+  userId       String       @map("user_id")
+  activityType ActivityType @map("activity_type")
+  xpGained     Int          @default(0) @map("xp_gained")
+  distance     Float?       @default(0.0)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  user         User         @relation(fields: [userId], references: [id])
+
+  @@map("activities")
+}
+
+model Badge {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  description String
+  icon        String
+  userBadges  UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  badgeId    String   @map("badge_id")
+  unlockedAt DateTime @default(now()) @map("unlocked_at")
+  badge      Badge    @relation(fields: [badgeId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, badgeId])
+  @@map("user_badges")
+}
+
+model Friend {
+  id          String       @id @default(uuid())
+  requesterId String       @map("requester_id")
+  receiverId  String       @map("receiver_id")
+  status      FriendStatus @default(PENDING)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  receiver    User         @relation("receiver", fields: [receiverId], references: [id])
+  requester   User         @relation("requester", fields: [requesterId], references: [id])
+
+  @@unique([requesterId, receiverId])
+  @@map("friends")
+}
+
+model CheatLog {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  reason    String
+  speed     Float?
+  distance  Float?
+  timestamp DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("cheat_logs")
+}
 
 enum ActivityType {
   CAPTURE
@@ -25,166 +146,4 @@ enum FriendStatus {
   PENDING
   ACCEPTED
   BLOCKED
-}
-
-// ─── User ────────────────────────────────────────────────────────────────────
-
-model User {
-  id             String   @id @default(uuid())
-  username       String   @unique
-  email          String   @unique
-  passwordHash   String   @map("password_hash")
-  avatarUrl      String?  @map("avatar_url")
-  level          Int      @default(1)
-  xp             Int      @default(0)
-  streak         Int      @default(0)
-  totalDistance   Float    @default(0.0) @map("total_distance")
-  territoryCount Int      @default(0) @map("territory_count")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  runs             Run[]
-  locations        UserLocation[]
-  territories      Territory[]
-  activities       Activity[]
-  badges           UserBadge[]
-  sentRequests     Friend[]   @relation("requester")
-  receivedRequests Friend[]   @relation("receiver")
-  cheatLogs        CheatLog[]
-
-  @@map("users")
-}
-
-// ─── Run ─────────────────────────────────────────────────────────────────────
-
-model Run {
-  id           String    @id @default(uuid())
-  userId       String    @map("user_id")
-  startTime    DateTime  @map("start_time")
-  endTime      DateTime? @map("end_time")
-  distance     Float     @default(0.0)
-  duration     Int       @default(0)
-  averageSpeed Float     @default(0.0) @map("average_speed")
-  xpGained     Int       @default(0) @map("xp_gained")
-  createdAt    DateTime  @default(now()) @map("created_at")
-
-  // Relations
-  user      User           @relation(fields: [userId], references: [id])
-  locations UserLocation[]
-
-  @@map("runs")
-}
-
-// ─── User Location ──────────────────────────────────────────────────────────
-
-model UserLocation {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  runId     String?  @map("run_id")
-  latitude  Float
-  longitude Float
-  speed     Float    @default(0.0)
-  timestamp DateTime @default(now())
-
-  // Relations
-  user User @relation(fields: [userId], references: [id])
-  run  Run? @relation(fields: [runId], references: [id])
-
-  @@map("user_locations")
-}
-
-// ─── Territory ──────────────────────────────────────────────────────────────
-
-model Territory {
-  id            String   @id @default(uuid())
-  gridId        String   @unique @map("grid_id")
-  ownerId       String?  @map("owner_id")
-  capturedAt    DateTime @default(now()) @map("captured_at")
-  lastActivity  DateTime @default(now()) @map("last_activity")
-  capturePoints Int      @default(100) @map("capture_points")
-
-  // Relations
-  owner User? @relation(fields: [ownerId], references: [id])
-
-  @@map("territories")
-}
-
-// ─── Activity ───────────────────────────────────────────────────────────────
-
-model Activity {
-  id           String       @id @default(uuid())
-  userId       String       @map("user_id")
-  activityType ActivityType @map("activity_type")
-  xpGained     Int          @default(0) @map("xp_gained")
-  distance     Float?       @default(0.0)
-  createdAt    DateTime     @default(now()) @map("created_at")
-
-  // Relations
-  user User @relation(fields: [userId], references: [id])
-
-  @@map("activities")
-}
-
-// ─── Badge ──────────────────────────────────────────────────────────────────
-
-model Badge {
-  id          String @id @default(uuid())
-  name        String @unique
-  description String
-  icon        String
-
-  // Relations
-  userBadges UserBadge[]
-
-  @@map("badges")
-}
-
-// ─── User Badge (Join Table) ────────────────────────────────────────────────
-
-model UserBadge {
-  id         String   @id @default(uuid())
-  userId     String   @map("user_id")
-  badgeId    String   @map("badge_id")
-  unlockedAt DateTime @default(now()) @map("unlocked_at")
-
-  // Relations
-  user  User  @relation(fields: [userId], references: [id])
-  badge Badge @relation(fields: [badgeId], references: [id])
-
-  @@unique([userId, badgeId])
-  @@map("user_badges")
-}
-
-// ─── Friend ─────────────────────────────────────────────────────────────────
-
-model Friend {
-  id          String       @id @default(uuid())
-  requesterId String       @map("requester_id")
-  receiverId  String       @map("receiver_id")
-  status      FriendStatus @default(PENDING)
-  createdAt   DateTime     @default(now()) @map("created_at")
-
-  // Relations
-  requester User @relation("requester", fields: [requesterId], references: [id])
-  receiver  User @relation("receiver", fields: [receiverId], references: [id])
-
-  @@unique([requesterId, receiverId])
-  @@map("friends")
-}
-
-// ─── Cheat Log ──────────────────────────────────────────────────────────────
-
-model CheatLog {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  reason    String
-  speed     Float?
-  distance  Float?
-  timestamp DateTime @default(now())
-
-  // Relations
-  user User @relation(fields: [userId], references: [id])
-
-  @@map("cheat_logs")
 }

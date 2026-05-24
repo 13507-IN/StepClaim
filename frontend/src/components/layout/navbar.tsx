@@ -46,20 +46,20 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/10">
+      <nav className="fixed top-0 left-0 lg:left-64 right-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 group">
+            <Link href="/" className="flex items-center gap-2 group lg:hidden">
               <Hexagon className="h-7 w-7 text-cyan-400 transition-transform group-hover:rotate-[30deg]" />
               <span className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
                 StepClaim
               </span>
             </Link>
-
+ 
             {/* Desktop Nav Links */}
             {isAuthenticated && (
-              <div className="hidden md:flex items-center gap-1">
+              <div className="hidden md:flex lg:hidden items-center gap-1">
                 {navLinks.map((link) => {
                   const Icon = link.icon;
                   const active = isActive(link.href);
@@ -81,7 +81,7 @@ export function Navbar() {
                 })}
               </div>
             )}
-
+ 
             {/* Right Side */}
             <div className="flex items-center gap-3">
               {isAuthenticated ? (

@@ -26,7 +26,15 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const { updateNearbyPlayer, removeNearbyPlayer, addNotification } = useGameStore();
   const { incrementCapturedCount } = useRunStore();
 
-  const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:5000';
+  const getWsUrl = (): string => {
+    const envUrl = process.env.NEXT_PUBLIC_WS_URL;
+    if (envUrl && envUrl !== 'undefined' && envUrl !== 'null' && envUrl.trim().startsWith('http')) {
+      return envUrl.trim();
+    }
+    return 'http://localhost:5000';
+  };
+
+  const WS_URL = getWsUrl();
 
   useEffect(() => {
     // Only connect if the user is authenticated and we have a valid access token

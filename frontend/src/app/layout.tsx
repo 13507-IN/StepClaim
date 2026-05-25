@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Space_Grotesk, Share_Tech_Mono } from 'next/font/google';
 import './globals.css';
 import { QueryProvider } from '@/contexts/query-provider';
 import { AuthProvider } from '@/contexts/auth-provider';
@@ -11,6 +11,19 @@ const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-sans',
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-header',
+});
+
+const shareTechMono = Share_Tech_Mono({
+  weight: '400',
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-mono',
 });
 
 export const metadata: Metadata = {
@@ -28,7 +41,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark scroll-smooth">
       <body
-        className={`${inter.variable} font-sans antialiased bg-[#0a0a0f] text-slate-200 min-h-screen flex flex-col`}
+        className={`${inter.variable} ${spaceGrotesk.variable} ${shareTechMono.variable} font-sans antialiased bg-[#0a0a0f] text-slate-200 min-h-screen flex flex-col`}
       >
         <QueryProvider>
           <AuthProvider>

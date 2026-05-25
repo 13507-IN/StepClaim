@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
+import React from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
 import {
   Compass,
   Trophy,
@@ -14,11 +14,11 @@ import {
   TrendingUp,
   Globe,
   Footprints,
-} from 'lucide-react';
-import Navbar from '@/components/layout/navbar';
-import { Footer } from '@/components/layout/footer';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+} from "lucide-react";
+import Navbar from "@/components/layout/navbar";
+import { Footer } from "@/components/layout/footer";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function LandingPage() {
   const containerVariants = {
@@ -51,7 +51,7 @@ export default function LandingPage() {
           className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{
             backgroundImage: `radial-gradient(circle, #ffffff 1px, transparent 1px)`,
-            backgroundSize: '24px 24px',
+            backgroundSize: "24px 24px",
           }}
         ></div>
 
@@ -62,12 +62,12 @@ export default function LandingPage() {
             transition={{ duration: 0.6 }}
             className="space-y-6"
           >
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-400 text-xs font-bold uppercase tracking-wider animate-pulse">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-400 text-xs font-cyber-mono font-bold uppercase tracking-wider animate-pulse">
               <Flame className="h-3.5 w-3.5 fill-cyan-400" />
               The Real-World Territory Strategy Fitness Game
             </span>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-tight max-w-4xl mx-auto">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-widest leading-tight max-w-4xl mx-auto font-cyber-header uppercase">
               Claim Your Territory, <br />
               <span className="bg-clip-text text-transparent bg-linear-to-r from-cyan-400 via-teal-300 to-purple-500">
                 One Step at a Time
@@ -75,18 +75,30 @@ export default function LandingPage() {
             </h1>
 
             <p className="text-sm sm:text-base md:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed font-medium">
-              Transform your physical walks, runs, and bike rides into strategic conquest. Explore your real life neighborhood, capture virtual H3 hexagons on a live map, and defend your sector against online rivals.
+              Transform your physical walks, runs, and bike rides into strategic
+              conquest. Explore your real life neighborhood, capture virtual H3
+              hexagons on a live map, and defend your sector against online
+              rivals.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <Button asChild size="lg" className="w-full sm:w-auto h-12 px-8 text-sm font-bold uppercase tracking-wider shadow-lg">
+              <Button
+                asChild
+                size="lg"
+                className="cyber-button w-full sm:w-auto h-12 px-8 text-sm font-cyber-header font-bold uppercase tracking-wider shadow-lg"
+              >
                 <Link href="/register" className="flex items-center gap-2">
                   Enlist Now
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4 animate-bounce" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="w-full sm:w-auto h-12 px-8 text-sm font-bold uppercase tracking-wider bg-white/5 border-white/10 hover:bg-white/10">
-                <Link href="#how-it-works">Learn Mechanics</Link>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="w-full sm:w-auto h-12 px-8 text-sm font-cyber-header font-bold uppercase tracking-wider bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-200"
+              >
+                <Link href="#how-it-works">[ Learn Mechanics ]</Link>
               </Button>
             </div>
           </motion.div>
@@ -94,24 +106,40 @@ export default function LandingPage() {
       </section>
 
       {/* ─── Statistics Banner ─────────────────────────────────────────────────── */}
-      <section className="border-y border-white/10 bg-white/1 backdrop-blur-md relative z-10 py-10">
+      <section className="border-y border-white/5 bg-white/1 backdrop-blur-md relative z-10 py-10">
         <div className="container max-w-5xl mx-auto px-5">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-              <h4 className="text-3xl font-extrabold text-white font-mono">14,200+</h4>
-              <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold mt-1">Active Runners</p>
+              <h4 className="text-3xl font-black text-cyan-400 font-cyber-mono">
+                14,200+
+              </h4>
+              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-cyber-mono mt-1">
+                // Active Runners
+              </p>
             </div>
             <div>
-              <h4 className="text-3xl font-extrabold text-white font-mono">82,500+</h4>
-              <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold mt-1">Hex Sectors Claimed</p>
+              <h4 className="text-3xl font-black text-cyan-400 font-cyber-mono">
+                82,500+
+              </h4>
+              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-cyber-mono mt-1">
+                // Sectors Claimed
+              </p>
             </div>
             <div>
-              <h4 className="text-3xl font-extrabold text-white font-mono">120,400+</h4>
-              <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold mt-1">Kilometers Traveled</p>
+              <h4 className="text-3xl font-black text-cyan-400 font-cyber-mono">
+                120,400+
+              </h4>
+              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-cyber-mono mt-1">
+                // Kilometers Traveled
+              </p>
             </div>
             <div>
-              <h4 className="text-3xl font-extrabold text-white font-mono">35+</h4>
-              <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold mt-1">Countries Claimed</p>
+              <h4 className="text-3xl font-black text-cyan-400 font-cyber-mono">
+                35+
+              </h4>
+              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-cyber-mono mt-1">
+                // Countries Claimed
+              </p>
             </div>
           </div>
         </div>
@@ -121,9 +149,12 @@ export default function LandingPage() {
       <section id="features" className="py-20 relative z-10">
         <div className="container max-w-6xl mx-auto px-5">
           <div className="text-center space-y-3 mb-16">
-            <h2 className="text-3xl font-extrabold text-white tracking-tight uppercase">Game Mechanics</h2>
-            <p className="text-sm text-slate-400 max-w-md mx-auto">
-              Engineered with advanced geospatial mathematics and premium tactical layouts.
+            <h2 className="text-3xl font-black text-white tracking-widest uppercase font-cyber-header">
+              Game Mechanics
+            </h2>
+            <p className="text-xs text-slate-400 max-w-md mx-auto font-cyber-mono">
+              // Engineered with advanced geospatial mathematics and premium
+              tactical layouts.
             </p>
           </div>
 
@@ -136,14 +167,24 @@ export default function LandingPage() {
           >
             {/* GPS Tracking */}
             <motion.div variants={itemVariants}>
-              <Card className="hover:border-white/20 transition-all duration-300 hover:shadow-cyan-500/5 h-full group">
+              <Card className="glass-cyber border-0 h-full group relative overflow-visible shadow-lg">
+                {/* HUD Corners */}
+                <div className="cyber-corner-tl" />
+                <div className="cyber-corner-tr" />
+                <div className="cyber-corner-bl" />
+                <div className="cyber-corner-br" />
+
                 <CardContent className="p-6 space-y-4">
                   <div className="p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 w-fit group-hover:scale-110 transition-transform duration-300">
                     <Compass className="h-6 w-6" />
                   </div>
-                  <h3 className="text-lg font-bold text-white uppercase tracking-wide">Live GPS Tracking</h3>
+                  <h3 className="text-lg font-bold text-white uppercase tracking-wide font-cyber-header">
+                    Live GPS Tracking
+                  </h3>
                   <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                    Integrated directly with hardware sensors via geolocation watchPosition. Monitors speeds, tracks path polyline coordinates, and records routes incrementally.
+                    Integrated directly with hardware sensors via geolocation
+                    watchPosition. Monitors speeds, tracks path polyline
+                    coordinates, and records routes incrementally.
                   </p>
                 </CardContent>
               </Card>
@@ -151,14 +192,24 @@ export default function LandingPage() {
 
             {/* H3 Grid Map */}
             <motion.div variants={itemVariants}>
-              <Card className="hover:border-white/20 transition-all duration-300 hover:shadow-purple-500/5 h-full group">
+              <Card className="glass-cyber border-0 h-full group relative overflow-visible shadow-lg">
+                {/* HUD Corners */}
+                <div className="cyber-corner-tl" />
+                <div className="cyber-corner-tr" />
+                <div className="cyber-corner-bl" />
+                <div className="cyber-corner-br" />
+
                 <CardContent className="p-6 space-y-4">
                   <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 w-fit group-hover:scale-110 transition-transform duration-300">
                     <MapPin className="h-6 w-6" />
                   </div>
-                  <h3 className="text-lg font-bold text-white uppercase tracking-wide">H3 Hexagonal Grid</h3>
+                  <h3 className="text-lg font-bold text-white uppercase tracking-wide font-cyber-header">
+                    H3 Hexagonal Grid
+                  </h3>
                   <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                    Powered by Uber H3 resolution 9 geospatial indexes. Every coordinate snaps atomically to a hexagonal sector, eliminating complex polygons overlaps.
+                    Powered by Uber H3 resolution 9 geospatial indexes. Every
+                    coordinate snaps atomically to a hexagonal sector,
+                    eliminating complex polygons overlaps.
                   </p>
                 </CardContent>
               </Card>
@@ -166,14 +217,24 @@ export default function LandingPage() {
 
             {/* Anti-Cheat Engine */}
             <motion.div variants={itemVariants}>
-              <Card className="hover:border-white/20 transition-all duration-300 hover:shadow-emerald-500/5 h-full group">
+              <Card className="glass-cyber border-0 h-full group relative overflow-visible shadow-lg">
+                {/* HUD Corners */}
+                <div className="cyber-corner-tl" />
+                <div className="cyber-corner-tr" />
+                <div className="cyber-corner-bl" />
+                <div className="cyber-corner-br" />
+
                 <CardContent className="p-6 space-y-4">
                   <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 w-fit group-hover:scale-110 transition-transform duration-300">
                     <TrendingUp className="h-6 w-6" />
                   </div>
-                  <h3 className="text-lg font-bold text-white uppercase tracking-wide">Anti-Cheat Engine</h3>
+                  <h3 className="text-lg font-bold text-white uppercase tracking-wide font-cyber-header">
+                    Anti-Cheat Engine
+                  </h3>
                   <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                    Advanced serverside filters. Analyzes velocities and checks temporal teleport leaps via the Haversine formula to reject mock coordinates.
+                    Advanced serverside filters. Analyzes velocities and checks
+                    temporal teleport leaps via the Haversine formula to reject
+                    mock coordinates.
                   </p>
                 </CardContent>
               </Card>
@@ -181,14 +242,24 @@ export default function LandingPage() {
 
             {/* Gamification */}
             <motion.div variants={itemVariants}>
-              <Card className="hover:border-white/20 transition-all duration-300 hover:shadow-yellow-500/5 h-full group">
+              <Card className="glass-cyber border-0 h-full group relative overflow-visible shadow-lg">
+                {/* HUD Corners */}
+                <div className="cyber-corner-tl" />
+                <div className="cyber-corner-tr" />
+                <div className="cyber-corner-bl" />
+                <div className="cyber-corner-br" />
+
                 <CardContent className="p-6 space-y-4">
                   <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 w-fit group-hover:scale-110 transition-transform duration-300">
                     <Trophy className="h-6 w-6" />
                   </div>
-                  <h3 className="text-lg font-bold text-white uppercase tracking-wide">Progression & XP</h3>
+                  <h3 className="text-lg font-bold text-white uppercase tracking-wide font-cyber-header">
+                    Progression & XP
+                  </h3>
                   <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                    Earn experience points for moving. Walk, run, or cycle at custom XP rates. Level up from a Beginner up to a Legend, checking stats thresholds.
+                    Earn experience points for moving. Walk, run, or cycle at
+                    custom XP rates. Level up from a Beginner up to a Legend,
+                    checking stats thresholds.
                   </p>
                 </CardContent>
               </Card>
@@ -196,14 +267,24 @@ export default function LandingPage() {
 
             {/* Badges & Streaks */}
             <motion.div variants={itemVariants}>
-              <Card className="hover:border-white/20 transition-all duration-300 hover:shadow-orange-500/5 h-full group">
+              <Card className="glass-cyber border-0 h-full group relative overflow-visible shadow-lg">
+                {/* HUD Corners */}
+                <div className="cyber-corner-tl" />
+                <div className="cyber-corner-tr" />
+                <div className="cyber-corner-bl" />
+                <div className="cyber-corner-br" />
+
                 <CardContent className="p-6 space-y-4">
                   <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-500 w-fit group-hover:scale-110 transition-transform duration-300">
                     <Flame className="h-6 w-6" />
                   </div>
-                  <h3 className="text-lg font-bold text-white uppercase tracking-wide">Badges & Streaks</h3>
+                  <h3 className="text-lg font-bold text-white uppercase tracking-wide font-cyber-header">
+                    Badges & Streaks
+                  </h3>
                   <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                    Earn specialty achievements like Marathoner, Explorer, or Night Runner. Maintain daily exercise streaks (requires 1km target completed daily).
+                    Earn specialty achievements like Marathoner, Explorer, or
+                    Night Runner. Maintain daily exercise streaks (requires 1km
+                    target completed daily).
                   </p>
                 </CardContent>
               </Card>
@@ -211,14 +292,24 @@ export default function LandingPage() {
 
             {/* Social Competitions */}
             <motion.div variants={itemVariants}>
-              <Card className="hover:border-white/20 transition-all duration-300 hover:shadow-indigo-500/5 h-full group">
+              <Card className="glass-cyber border-0 h-full group relative overflow-visible shadow-lg">
+                {/* HUD Corners */}
+                <div className="cyber-corner-tl" />
+                <div className="cyber-corner-tr" />
+                <div className="cyber-corner-bl" />
+                <div className="cyber-corner-br" />
+
                 <CardContent className="p-6 space-y-4">
                   <div className="p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 w-fit group-hover:scale-110 transition-transform duration-300">
                     <Users className="h-6 w-6" />
                   </div>
-                  <h3 className="text-lg font-bold text-white uppercase tracking-wide">Social Networks</h3>
+                  <h3 className="text-lg font-bold text-white uppercase tracking-wide font-cyber-header">
+                    Social Networks
+                  </h3>
                   <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                    Add workout friends, track their live locations on map, monitor social feeds, and climb private Friends brackets on leaderboards.
+                    Add workout friends, track their live locations on map,
+                    monitor social feeds, and climb private Friends brackets on
+                    leaderboards.
                   </p>
                 </CardContent>
               </Card>
@@ -228,10 +319,15 @@ export default function LandingPage() {
       </section>
 
       {/* ─── How It Works ──────────────────────────────────────────────────────── */}
-      <section id="how-it-works" className="py-20 border-t border-white/5 bg-white/1 relative z-10">
+      <section
+        id="how-it-works"
+        className="py-20 border-t border-white/5 bg-white/1 relative z-10"
+      >
         <div className="container max-w-5xl mx-auto px-5">
           <div className="text-center space-y-3 mb-16">
-            <h2 className="text-3xl font-extrabold text-white uppercase">Operational Loop</h2>
+            <h2 className="text-3xl font-extrabold text-white uppercase">
+              Operational Loop
+            </h2>
             <p className="text-sm text-slate-400 max-w-sm mx-auto">
               Three simple steps to establish command over your municipality.
             </p>
@@ -246,9 +342,13 @@ export default function LandingPage() {
               <div className="w-12 h-12 rounded-full bg-[#0a0a0f] border border-cyan-500 text-cyan-400 flex items-center justify-center font-bold text-lg font-mono shadow-[0_0_15px_rgba(6,182,212,0.15)]">
                 1
               </div>
-              <h3 className="text-base font-bold text-white uppercase tracking-wider">Start Moving</h3>
+              <h3 className="text-base font-bold text-white uppercase tracking-wider">
+                Start Moving
+              </h3>
               <p className="text-xs text-slate-400 max-w-[220px] leading-relaxed">
-                Fire up the Live Run page, select your exercise (Walking, Running, or Cycling), and watch your GPS track active coordinates.
+                Fire up the Live Run page, select your exercise (Walking,
+                Running, or Cycling), and watch your GPS track active
+                coordinates.
               </p>
             </div>
 
@@ -257,9 +357,12 @@ export default function LandingPage() {
               <div className="w-12 h-12 rounded-full bg-[#0a0a0f] border border-purple-500 text-purple-400 flex items-center justify-center font-bold text-lg font-mono shadow-[0_0_15px_rgba(168,85,247,0.15)]">
                 2
               </div>
-              <h3 className="text-base font-bold text-white uppercase tracking-wider">Capture Hexagons</h3>
+              <h3 className="text-base font-bold text-white uppercase tracking-wider">
+                Capture Hexagons
+              </h3>
               <p className="text-xs text-slate-400 max-w-[220px] leading-relaxed">
-                As you physically intersect empty or enemy sectors, snapping triggers transfer ownership and locks the sector for 30s.
+                As you physically intersect empty or enemy sectors, snapping
+                triggers transfer ownership and locks the sector for 30s.
               </p>
             </div>
 
@@ -268,9 +371,12 @@ export default function LandingPage() {
               <div className="w-12 h-12 rounded-full bg-[#0a0a0f] border border-yellow-500 text-yellow-400 flex items-center justify-center font-bold text-lg font-mono shadow-[0_0_15px_rgba(234,179,8,0.15)]">
                 3
               </div>
-              <h3 className="text-base font-bold text-white uppercase tracking-wider">Climb Leaderboard</h3>
+              <h3 className="text-base font-bold text-white uppercase tracking-wider">
+                Climb Leaderboard
+              </h3>
               <p className="text-xs text-slate-400 max-w-[220px] leading-relaxed">
-                Collect XP rewards, grow streaks, level up, unlock rare achievements, and claim your spot on the Global ranks.
+                Collect XP rewards, grow streaks, level up, unlock rare
+                achievements, and claim your spot on the Global ranks.
               </p>
             </div>
           </div>
@@ -285,9 +391,14 @@ export default function LandingPage() {
             Claim Your First Sector Today
           </h2>
           <p className="text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
-            Create your account in less than a minute, set up your profile avatar, and step outside to capture your neighborhood.
+            Create your account in less than a minute, set up your profile
+            avatar, and step outside to capture your neighborhood.
           </p>
-          <Button asChild size="lg" className="h-12 px-10 text-sm font-bold uppercase tracking-wider mt-4">
+          <Button
+            asChild
+            size="lg"
+            className="h-12 px-10 text-sm font-bold uppercase tracking-wider mt-4"
+          >
             <Link href="/register">Join the Battle</Link>
           </Button>
         </div>

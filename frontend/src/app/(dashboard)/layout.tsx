@@ -20,13 +20,13 @@ export default function DashboardLayout({
         {/* Header Navbar */}
         <Navbar />
 
-        <div className="flex-1 flex pt-16">
+        <div className="flex-1 flex pt-16 lg:pl-64">
           {/* Left Desktop Sidebar */}
           <Sidebar />
 
           {/* Main Workspace Frame */}
           <main
-            className={`flex-1 flex flex-col transition-all duration-300 lg:ml-64 ${
+            className={`flex-1 flex flex-col transition-all duration-300 ${
               isMapPage ? 'h-[calc(100vh-4rem)] overflow-hidden' : 'overflow-y-auto px-4 py-6 lg:px-8 lg:py-8'
             }`}
           >

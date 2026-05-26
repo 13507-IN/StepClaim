@@ -16,31 +16,26 @@ export default function DashboardLayout({
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-[#0a0a0f] flex flex-col">
-        {/* Header Navbar */}
+      <div className="min-h-screen bg-[#0a0a0f]">
         <Navbar />
+        <Sidebar />
 
-        <div className="flex-1 flex pt-16 lg:pl-64">
-          {/* Left Desktop Sidebar */}
-          <Sidebar />
-
-          {/* Main Workspace Frame */}
-          <main
-            className={`flex-1 flex flex-col transition-all duration-300 ${
-              isMapPage ? 'h-[calc(100vh-4rem)] overflow-hidden' : 'overflow-y-auto px-4 py-6 lg:px-8 lg:py-8'
+        <main
+          className={`pt-16 lg:ml-64 transition-all duration-300 ${
+            isMapPage
+              ? 'h-screen overflow-hidden'
+              : 'min-h-screen overflow-y-auto px-4 py-6 lg:px-8 lg:py-8'
+          }`}
+        >
+          <div
+            className={`w-full flex flex-col ${
+              isMapPage ? 'h-[calc(100vh-4rem)]' : 'max-w-6xl'
             }`}
           >
-            <div
-              className={`w-full flex-1 flex flex-col ${
-                isMapPage ? 'h-full' : 'max-w-6xl mx-auto'
-              }`}
-            >
-              {children}
-            </div>
-          </main>
-        </div>
+            {children}
+          </div>
+        </main>
       </div>
     </ProtectedRoute>
   );
 }
-

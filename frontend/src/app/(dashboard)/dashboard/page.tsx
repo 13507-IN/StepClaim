@@ -32,27 +32,27 @@ export default function DashboardPage() {
     : '0.0 km';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pt-4">
       {/* ─── Header Section ────────────────────────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h2 className="text-2xl font-extrabold text-white tracking-tight uppercase">
+          <h2 className="text-3xl font-extrabold text-white leading-tight tracking-[0.02em]">
             Overview
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
             Welcome back, <span className="font-bold text-white">{user?.username}</span>. Check your progress and ready your gear.
           </p>
         </div>
 
         {/* Quick Launch Buttons */}
         <div className="flex items-center gap-3">
-          <Button asChild size="sm" variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10">
+          <Button asChild size="sm" variant="outline" className="h-10 border-white/10 bg-white/5 px-4 text-sm font-semibold text-slate-100 hover:bg-white/10">
             <Link href="/run" className="flex items-center gap-1.5">
               <Map className="h-4 w-4" />
               View Map
             </Link>
           </Button>
-          <Button asChild size="sm" className="bg-linear-to-r from-cyan-500 to-purple-600 font-bold uppercase tracking-wider text-xs">
+          <Button asChild size="sm" className="h-10 bg-linear-to-r from-cyan-500 to-purple-600 px-4 text-sm font-bold tracking-wide">
             <Link href="/run" className="flex items-center gap-1.5">
               <Play className="h-3.5 w-3.5 fill-white" />
               Start Run
@@ -69,7 +69,7 @@ export default function DashboardPage() {
       )}
 
       {/* ─── Quick Stats Card Grid ────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, idx) => <Skeleton key={idx} className="h-24 w-full rounded-xl" />)
         ) : (
@@ -118,8 +118,8 @@ export default function DashboardPage() {
       </div>
 
       {/* ─── Recent Activity Log Feed ──────────────────────────────────────────── */}
-      <div className="space-y-4">
-        <h3 className="text-base font-bold text-white uppercase tracking-wider">
+      <div className="space-y-5">
+        <h3 className="text-2xl font-bold text-white leading-tight tracking-[0.01em]">
           Recent Activity Timeline
         </h3>
 

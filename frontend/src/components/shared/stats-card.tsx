@@ -30,15 +30,15 @@ export const StatsCard: React.FC<StatsCardProps> = ({
       className="w-full"
     >
       <Card className="hover:border-white/20 transition-all duration-300 hover:shadow-cyan-500/5 group">
-        <CardContent className="flex items-center gap-4 p-5">
-          <div className={`p-3 rounded-lg bg-white/5 border border-white/10 ${iconColorClass} group-hover:scale-110 transition-transform duration-300`}>
+        <CardContent className="flex items-start gap-4 p-5">
+          <div className={`mt-0.5 rounded-lg border border-white/10 bg-white/5 p-2.5 ${iconColorClass} transition-transform duration-300 group-hover:scale-105`}>
             <Icon className="h-5 w-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{label}</p>
-            <h4 className="text-2xl font-bold text-white mt-1 font-mono truncate">{value}</h4>
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-400">{label}</p>
+            <h4 className="mt-2 truncate font-mono text-4xl font-bold leading-none text-white">{value}</h4>
             {description && (
-              <p className="text-[10px] text-slate-500 mt-0.5 truncate">{description}</p>
+              <p className="mt-2 truncate text-xs leading-5 text-slate-500">{description}</p>
             )}
           </div>
         </CardContent>

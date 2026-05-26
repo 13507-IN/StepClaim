@@ -32,7 +32,7 @@ export function Sidebar() {
     pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <aside className="hidden w-64 flex-col border-r border-white/10 bg-[#0a0a0f]/80 backdrop-blur-xl lg:sticky lg:top-16 lg:z-40 lg:flex lg:h-[calc(100vh-4rem)]">
+    <aside className="hidden w-64 flex-col border-r border-white/10 bg-[#0a0a0f]/80 backdrop-blur-xl lg:sticky lg:top-0 lg:z-40 lg:flex lg:h-screen">
       {/* Logo Area */}
       <div className="flex h-16 items-center gap-2 px-6 border-b border-white/10">
         <Link href="/" className="flex items-center gap-2 group">

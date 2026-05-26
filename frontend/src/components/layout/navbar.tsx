@@ -44,11 +44,24 @@ export function Navbar() {
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`);
 
+  const isShellRoute = pathname.startsWith('/dashboard')
+    || pathname.startsWith('/run')
+    || pathname.startsWith('/leaderboard')
+    || pathname.startsWith('/friends')
+    || pathname.startsWith('/activity')
+    || pathname.startsWith('/profile')
+    || pathname.startsWith('/settings');
+
   return (
     <>
-      <nav className="fixed top-0 left-0 lg:left-64 right-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
+      <nav
+        className={cn(
+          'z-50 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/10',
+          isShellRoute ? 'sticky top-0 left-0 right-0' : 'fixed top-0 inset-x-0'
+        )}
+      >
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <div className={cn('flex h-16 items-center justify-between', isShellRoute && 'lg:justify-end')}>
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 group lg:hidden">
               <Hexagon className="h-7 w-7 text-cyan-400 transition-transform group-hover:rotate-[30deg]" />
@@ -83,7 +96,7 @@ export function Navbar() {
             )}
  
             {/* Right Side */}
-            <div className="flex items-center gap-3">
+            <div className="ml-auto flex items-center gap-3">
               {isAuthenticated ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -259,4 +272,3 @@ export function Navbar() {
   );
 }
 export default Navbar;
-

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRunStore } from '../store/run.store';
 import { useSocket } from './useSocket';
 import { useGPS } from './useGPS';
@@ -10,6 +10,7 @@ import { LocationPoint } from '../types';
 export const useRun = () => {
   const store = useRunStore();
   const { sendMessage } = useSocket();
+  const lastLocationEmitRef = useRef(0);
 
   // 1. Hook up the duration counter timer (runs every second)
   useEffect(() => {
@@ -26,18 +27,23 @@ export const useRun = () => {
 
   // 2. Custom callback invoked whenever GPS outputs a valid coordinate update
   const handleLocationUpdate = (point: LocationPoint) => {
-    if (store.isRunning && !store.isPaused) {
-      // Record point in Zustand run store to compute distances and calorie burns
-      store.addLocation(point);
+    const now = Date.now();
+    const shouldEmit = now - lastLocationEmitRef.current >= 1500;
 
-      // Stream geopoint coordinates to the Fastify Socket.IO backend
+    if (shouldEmit) {
       sendMessage('LOCATION_UPDATED', {
         latitude: point.latitude,
         longitude: point.longitude,
         speed: point.speed || 0,
-        activityType: store.activityType,
-        runId: store.currentRunId,
+        activityType: store.isRunning ? store.activityType : 'WALKING',
+        runId: store.isRunning ? store.currentRunId : null,
       });
+      lastLocationEmitRef.current = now;
+    }
+
+    if (store.isRunning && !store.isPaused) {
+      // Record point in Zustand run store to compute distances and calorie burns
+      store.addLocation(point);
     }
   };
 

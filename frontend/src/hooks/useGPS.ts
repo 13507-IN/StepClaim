@@ -12,6 +12,7 @@ export const useGPS = ({ enabled, onLocationUpdate }: UseGPSProps) => {
   const watchIdRef = useRef<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentCoords, setCurrentCoords] = useState<LocationPoint | null>(null);
+  const MAX_ACCEPTABLE_ACCURACY_METERS = 200;
 
   useEffect(() => {
     if (!enabled) {
@@ -27,37 +28,40 @@ export const useGPS = ({ enabled, onLocationUpdate }: UseGPSProps) => {
       return;
     }
 
-    // Geolocation API configs for precise real-time hardware pings
     const options: PositionOptions = {
       enableHighAccuracy: true,
-      timeout: 10000, // 10s
-      maximumAge: 0, // no cache
+      timeout: 10000,
+      maximumAge: 0,
     };
 
-    const successHandler = (position: GeolocationPosition) => {
+    const buildPoint = (position: GeolocationPosition): LocationPoint => {
       const { latitude, longitude, speed, accuracy, altitude } = position.coords;
-
-      // Rule 5: Ignore GPS noise and inaccurate readings (> 25 meters accuracy drift)
-      if (accuracy > 25) {
-        console.warn(`⚠️ GPS: Dropping noisy coordinate update (Accuracy: ${accuracy.toFixed(1)}m > 25m)`);
-        return;
-      }
-
-      const point: LocationPoint = {
+      return {
         latitude,
         longitude,
-        speed: speed || 0,
+        speed: speed && speed > 0 ? speed : 0,
         accuracy,
         altitude: altitude || undefined,
         timestamp: position.timestamp,
       };
+    };
 
+    const successHandler = (position: GeolocationPosition) => {
+      const accuracy = position.coords.accuracy;
+
+      // Accept normal phone jitter; only reject clearly unusable points.
+      if (!Number.isFinite(accuracy) || accuracy > MAX_ACCEPTABLE_ACCURACY_METERS) {
+        console.warn(`GPS: Dropping very noisy coordinate update (accuracy: ${accuracy.toFixed(1)}m)`);
+        return;
+      }
+
+      const point = buildPoint(position);
       setCurrentCoords(point);
       onLocationUpdate(point);
     };
 
     const errorHandler = (err: GeolocationPositionError) => {
-      console.error('❌ GPS Error:', err.message);
+      console.error('GPS Error:', err.message);
       let errMsg = 'Failed to fetch GPS coordinates';
       if (err.code === err.PERMISSION_DENIED) {
         errMsg = 'GPS access denied by user. Please enable location permissions.';
@@ -69,39 +73,24 @@ export const useGPS = ({ enabled, onLocationUpdate }: UseGPSProps) => {
       setError(errMsg);
     };
 
-    console.log('📡 GPS: Fetching quick initial position for instant map centering...');
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const { latitude, longitude, speed, accuracy, altitude } = position.coords;
-        if (accuracy <= 25) {
-          const point: LocationPoint = {
-            latitude,
-            longitude,
-            speed: speed || 0,
-            accuracy,
-            altitude: altitude || undefined,
-            timestamp: position.timestamp,
-          };
+        if (position.coords.accuracy <= MAX_ACCEPTABLE_ACCURACY_METERS) {
+          const point = buildPoint(position);
           setCurrentCoords(point);
           onLocationUpdate(point);
         }
       },
-      (err) => {
-        console.warn('⚠️ GPS: Quick initial position fetch failed, relying on watch:', err.message);
+      () => {
+        // Fallback to watchPosition path.
       },
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 },
     );
 
-    console.log('📡 GPS: Starting geolocation watchPosition...');
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      successHandler,
-      errorHandler,
-      options,
-    );
+    watchIdRef.current = navigator.geolocation.watchPosition(successHandler, errorHandler, options);
 
     return () => {
       if (watchIdRef.current !== null) {
-        console.log('📡 GPS: Clearing geolocation watchPosition...');
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
       }
@@ -110,4 +99,5 @@ export const useGPS = ({ enabled, onLocationUpdate }: UseGPSProps) => {
 
   return { currentCoords, error };
 };
+
 export default useGPS;

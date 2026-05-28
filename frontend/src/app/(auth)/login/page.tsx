@@ -65,37 +65,31 @@ export default function LoginPage() {
   };
 
   return (
-    <Card className="glass-cyber border-0 rounded-2xl relative shadow-2xl overflow-visible">
-      {/* HUD Corner Brackets */}
-      <div className="cyber-corner-tl" />
-      <div className="cyber-corner-tr" />
-      <div className="cyber-corner-bl" />
-      <div className="cyber-corner-br" />
-
+    <Card className="bg-[#0a0a0f]/60 backdrop-blur-xl border border-white/5 rounded-2xl relative shadow-2xl overflow-visible">
       {/* Cyber Technical Grid Accent */}
-      <div className="absolute top-0 right-12 w-24 h-1 border-x border-b border-cyan-500/30 bg-cyan-950/20 text-[7px] font-cyber-mono text-cyan-400/50 flex items-center justify-center tracking-widest px-1">
+      <div className="absolute top-0 right-12 w-24 h-1 border-x border-b border-cyan-500/30 bg-cyan-950/20 text-[7px] font-[family-name:var(--font-mono)] text-cyan-400/50 flex items-center justify-center tracking-widest px-1">
         SYS_AUTH_v1.4
       </div>
 
       <CardHeader className="text-center space-y-2 pb-4 pt-8">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 justify-center text-cyan-400 font-cyber-header font-black uppercase tracking-widest text-sm hover:opacity-85 transition-opacity"
+          className="inline-flex items-center gap-1.5 justify-center text-cyan-400 font-[family-name:var(--font-header)] font-black uppercase tracking-widest text-sm hover:opacity-85 transition-opacity"
         >
           <Flame className="h-5 w-5 fill-cyan-400 animate-pulse" />
           StepClaim
         </Link>
 
-        <CardTitle className="text-2xl uppercase font-cyber-header font-black text-white tracking-widest">
+        <CardTitle className="text-2xl uppercase font-[family-name:var(--font-header)] font-black text-white tracking-widest">
           Account Login
         </CardTitle>
 
-        <div className="inline-flex items-center gap-1.5 text-[9px] font-cyber-mono text-cyan-400/90 uppercase tracking-widest bg-cyan-950/40 border border-cyan-500/20 px-3 py-1 rounded-full w-fit mx-auto">
+        <div className="inline-flex items-center gap-1.5 text-[9px] font-[family-name:var(--font-mono)] text-cyan-400/90 uppercase tracking-widest bg-cyan-950/40 border border-cyan-500/20 px-3 py-1 rounded-full w-fit mx-auto">
           <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
           Uplink: SECURE_CHANNEL_OK
         </div>
 
-        <CardDescription className="text-[11px] font-cyber-mono text-slate-400 max-w-[280px] mx-auto pt-2">
+        <CardDescription className="text-[11px] font-[family-name:var(--font-mono)] text-slate-400 max-w-[280px] mx-auto pt-2">
           // Welcome back recruit. Key in your credentials to deploy.
         </CardDescription>
       </CardHeader>
@@ -106,7 +100,7 @@ export default function LoginPage() {
           <div className="space-y-2">
             <Label
               htmlFor="email"
-              className="font-cyber-mono text-[10px] text-cyan-400/70 uppercase tracking-widest"
+              className="font-[family-name:var(--font-mono)] text-[10px] text-cyan-400/70 uppercase tracking-widest"
             >
               &gt; Email Address
             </Label>
@@ -114,11 +108,11 @@ export default function LoginPage() {
               id="email"
               type="email"
               placeholder="recruit@stepclaim.com"
-              className="cyber-input"
+              className="flex h-10 w-full rounded-md border border-white/10 bg-[#0a0a0f]/50 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
               {...register("email")}
             />
             {errors.email && (
-              <p className="text-[10px] font-cyber-mono font-semibold text-red-400 mt-1 pl-1">
+              <p className="text-[10px] font-[family-name:var(--font-mono)] font-semibold text-red-400 mt-1 pl-1">
                 !! {errors.email.message}
               </p>
             )}
@@ -129,7 +123,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-between">
               <Label
                 htmlFor="password"
-                className="font-cyber-mono text-[10px] text-cyan-400/70 uppercase tracking-widest"
+                className="font-[family-name:var(--font-mono)] text-[10px] text-cyan-400/70 uppercase tracking-widest"
               >
                 &gt; Security Cipher (Password)
               </Label>
@@ -138,11 +132,11 @@ export default function LoginPage() {
               id="password"
               type="password"
               placeholder="••••••••"
-              className="cyber-input"
+              className="flex h-10 w-full rounded-md border border-white/10 bg-[#0a0a0f]/50 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
               {...register("password")}
             />
             {errors.password && (
-              <p className="text-[10px] font-cyber-mono font-semibold text-red-400 mt-1 pl-1">
+              <p className="text-[10px] font-[family-name:var(--font-mono)] font-semibold text-red-400 mt-1 pl-1">
                 !! {errors.password.message}
               </p>
             )}
@@ -153,7 +147,7 @@ export default function LoginPage() {
           <Button
             type="submit"
             disabled={loading}
-            className="cyber-button w-full h-11 font-cyber-header font-extrabold uppercase tracking-widest text-xs shadow-lg"
+            className="w-full h-11 font-[family-name:var(--font-header)] font-extrabold uppercase tracking-widest text-xs shadow-[0_0_15px_rgba(6,182,212,0.3)] bg-gradient-to-br from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 border border-white/20 text-white transition-all duration-300"
           >
             {loading ? (
               <span className="flex items-center justify-center">
@@ -168,7 +162,7 @@ export default function LoginPage() {
             )}
           </Button>
 
-          <p className="text-[11px] font-cyber-mono text-center text-slate-400">
+          <p className="text-[11px] font-[family-name:var(--font-mono)] text-center text-slate-400">
             First mission?{" "}
             <Link
               href="/register"

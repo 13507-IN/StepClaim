@@ -25,6 +25,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
       localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('userId', user.id);
     }
     set({ user, accessToken, refreshToken, isAuthenticated: true });
   },
@@ -32,6 +33,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   setUser: (user) => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('userId', user.id);
     }
     set({ user });
   },
@@ -41,6 +43,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
+      localStorage.removeItem('userId');
     }
     set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false });
   },
@@ -54,6 +57,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
         if (accessToken && refreshToken && userRaw) {
           const user = JSON.parse(userRaw);
+          localStorage.setItem('userId', user.id);
           set({ user, accessToken, refreshToken, isAuthenticated: true, isHydrated: true });
           return;
         }

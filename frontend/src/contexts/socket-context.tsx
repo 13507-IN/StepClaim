@@ -80,6 +80,23 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         });
       });
 
+      socket.on('NEARBY_PLAYERS', (payload: { players: Array<{ userId: string; username: string; latitude: number; longitude: number; speed?: number }> }) => {
+        payload.players.forEach((player) => {
+          updateNearbyPlayer({
+            userId: player.userId,
+            username: player.username,
+            location: {
+              latitude: player.latitude,
+              longitude: player.longitude,
+              accuracy: 5,
+              timestamp: Date.now(),
+            },
+            level: 1,
+            isRunning: true,
+          });
+        });
+      });
+
       // Another player disconnected
       socket.on('USER_DISCONNECTED', (payload: { userId: string }) => {
         removeNearbyPlayer(payload.userId);

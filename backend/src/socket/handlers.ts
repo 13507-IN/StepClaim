@@ -9,6 +9,18 @@ const cellToParent = h3.cellToParent || (h3 as any).h3ToParent;
 
 const gpsService = new GpsService();
 
+interface PresenceState {
+  userId: string;
+  username: string;
+  latitude: number;
+  longitude: number;
+  speed: number;
+  room: string;
+  updatedAt: number;
+}
+
+const livePresenceByUserId = new Map<string, PresenceState>();
+
 /**
  * Register gameplay event listeners for a newly connected Socket.IO client.
  */
@@ -71,13 +83,32 @@ export function registerSocketHandlers(socket: Socket): void {
           currentParentCellRoom = newRoomName;
         }
 
+        const now = Date.now();
+        const presence: PresenceState = {
+          userId,
+          username,
+          latitude,
+          longitude,
+          speed: result.speed ?? speed,
+          room: newRoomName,
+          updatedAt: now,
+        };
+        livePresenceByUserId.set(userId, presence);
+
+        const nearbyPlayers = Array.from(livePresenceByUserId.values())
+          .filter((p) => p.room === newRoomName && p.userId !== userId && now - p.updatedAt <= 120000)
+          .map(({ room, updatedAt, ...player }) => player);
+
+        // Give the sender a snapshot so map markers can render immediately.
+        socket.emit('NEARBY_PLAYERS', { players: nearbyPlayers });
+
         // Broadcast current location to other online players inside the same spatial room
         socket.to(newRoomName).emit('LOCATION_SHARED', {
           userId,
           username,
           latitude,
           longitude,
-          speed: result.speed,
+          speed: presence.speed,
         });
 
         // ─── Capture Event Triggered ───────────────────────────────────────────
@@ -132,5 +163,10 @@ export function registerSocketHandlers(socket: Socket): void {
       username,
       runId: payload.runId,
     });
+  });
+
+  socket.on('disconnect', () => {
+    livePresenceByUserId.delete(userId);
+    socket.broadcast.emit('USER_DISCONNECTED', { userId });
   });
 }

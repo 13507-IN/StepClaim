@@ -4,21 +4,91 @@ import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
-  Compass,
-  Trophy,
-  Flame,
-  Award,
-  Users,
-  MapPin,
   ArrowRight,
-  TrendingUp,
-  Globe,
+  Flame,
   Footprints,
+  Globe,
+  Map,
+  MapPin,
+  ShieldCheck,
+  Trophy,
+  TrendingUp,
+  Users,
 } from "lucide-react";
 import Navbar from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+
+const stats = [
+  { label: "Active players", value: "14.2K+" },
+  { label: "Hexes claimed", value: "82.5K+" },
+  { label: "Distance tracked", value: "120.4K km" },
+  { label: "Countries active", value: "35+" },
+];
+
+const features = [
+  {
+    title: "Real-time GPS tracking",
+    description:
+      "Track routes live and turn movement into map control with accurate pace and distance data.",
+    icon: MapPin,
+    tone: "text-cyan-300",
+  },
+  {
+    title: "Hex-based territory map",
+    description:
+      "H3 hexes make every capture easy to understand while keeping gameplay fair and strategic.",
+    icon: Map,
+    tone: "text-violet-300",
+  },
+  {
+    title: "Anti-cheat protection",
+    description:
+      "Server-side speed and location validation helps keep progression and competition trustworthy.",
+    icon: ShieldCheck,
+    tone: "text-emerald-300",
+  },
+  {
+    title: "Leveling and streaks",
+    description:
+      "Earn XP each run, keep daily streaks alive, and climb through levels by staying consistent.",
+    icon: Trophy,
+    tone: "text-amber-300",
+  },
+  {
+    title: "Competitive leaderboards",
+    description:
+      "Compete globally or with friends to see who owns the most territory and momentum.",
+    icon: TrendingUp,
+    tone: "text-sky-300",
+  },
+  {
+    title: "Social fitness loop",
+    description:
+      "Follow friends, compare activity, and stay motivated through collaborative competition.",
+    icon: Users,
+    tone: "text-indigo-300",
+  },
+];
+
+const steps = [
+  {
+    title: "Start a run",
+    description:
+      "Choose walking, running, or cycling, then begin a live session from your dashboard.",
+  },
+  {
+    title: "Capture nearby hexes",
+    description:
+      "As you move, your route intersects territory cells that get claimed in real time.",
+  },
+  {
+    title: "Build your rank",
+    description:
+      "Stack XP, defend your map control, and rise in the leaderboard with every session.",
+  },
+];
 
 export default function LandingPage() {
   const containerVariants = {
@@ -31,130 +101,95 @@ export default function LandingPage() {
 
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { duration: 0.5 } },
+    visible: { y: 0, opacity: 1, transition: { duration: 0.45 } },
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex flex-col">
-      {/* Dynamic Header Navbar */}
+    <div className="min-h-screen bg-[#06070f] flex flex-col">
       <Navbar />
 
-      {/* ─── Hero Section ──────────────────────────────────────────────────────── */}
-      <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden flex items-center justify-center">
-        {/* Glow Gradients Backdrops */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-cyan-500/10 to-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute top-0 right-0 w-80 h-80 bg-purple-600/5 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
+      <section className="relative overflow-hidden pt-30 pb-18 md:pt-36 md:pb-24">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-28 left-1/2 h-[440px] w-[440px] -translate-x-1/2 rounded-full bg-cyan-500/15 blur-[140px]" />
+          <div className="absolute right-0 top-10 h-80 w-80 rounded-full bg-purple-500/10 blur-[120px]" />
+          <div className="absolute left-0 bottom-0 h-80 w-80 rounded-full bg-cyan-500/10 blur-[120px]" />
+        </div>
 
-        {/* Tactical Mesh Hex Grid Background Overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.03] pointer-events-none"
-          style={{
-            backgroundImage: `radial-gradient(circle, #ffffff 1px, transparent 1px)`,
-            backgroundSize: "24px 24px",
-          }}
-        ></div>
-
-        <div className="container max-w-6xl mx-auto px-5 text-center relative z-10">
+        <div className="container relative z-10 mx-auto max-w-6xl px-5 text-center">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="space-y-6"
+            className="space-y-7"
           >
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-400 text-xs font-[family-name:var(--font-mono)] font-bold uppercase tracking-wider animate-pulse">
-              <Flame className="h-3.5 w-3.5 fill-cyan-400" />
-              The Real-World Territory Strategy Fitness Game
+            <span className="inline-flex items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-500/10 px-3.5 py-1.5 text-xs font-semibold tracking-wide text-cyan-200">
+              <Flame className="h-3.5 w-3.5 fill-cyan-300 text-cyan-300" />
+              Real-world movement meets strategy gameplay
             </span>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-widest leading-tight max-w-4xl mx-auto font-[family-name:var(--font-header)] uppercase">
-              Claim Your Territory, <br />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-teal-300 to-purple-500">
-                One Step at a Time
+            <h1 className="mx-auto max-w-4xl text-4xl font-black leading-tight text-white sm:text-5xl md:text-6xl">
+              Capture territory with every
+              <span className="bg-gradient-to-r from-cyan-300 via-teal-200 to-purple-300 bg-clip-text text-transparent">
+                {" "}
+                step you take
               </span>
             </h1>
 
-            <p className="text-sm sm:text-base md:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed font-medium">
-              Transform your physical walks, runs, and bike rides into strategic
-              conquest. Explore your real life neighborhood, capture virtual H3
-              hexagons on a live map, and defend your sector against online
-              rivals.
+            <p className="mx-auto max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base md:text-lg">
+              StepClaim turns walks, runs, and rides into a competitive map game.
+              Explore your city, claim hexes, and build your rank with every session.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            <div className="flex flex-col items-center justify-center gap-4 pt-2 sm:flex-row">
               <Button
                 asChild
                 size="lg"
-                className="w-full sm:w-auto h-12 px-8 text-sm font-[family-name:var(--font-header)] font-bold uppercase tracking-wider shadow-[0_0_20px_rgba(6,182,212,0.3)] bg-gradient-to-br from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 border border-white/20 text-white transition-all duration-300"
+                className="h-12 w-full border border-white/20 bg-gradient-to-br from-cyan-500 to-purple-600 px-8 text-sm font-semibold text-white shadow-[0_0_24px_rgba(6,182,212,0.35)] hover:from-cyan-400 hover:to-purple-500 sm:w-auto"
               >
                 <Link href="/register" className="flex items-center gap-2">
-                  Enlist Now
-                  <ArrowRight className="h-4 w-4 animate-bounce" />
+                  Start Playing
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button
                 asChild
                 size="lg"
                 variant="outline"
-                className="w-full sm:w-auto h-12 px-8 text-sm font-[family-name:var(--font-header)] font-bold uppercase tracking-wider bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-200"
+                className="h-12 w-full border border-white/15 bg-white/5 px-8 text-sm text-slate-100 hover:bg-white/10 sm:w-auto"
               >
-                <Link href="#how-it-works">[ Learn Mechanics ]</Link>
+                <Link href="#how-it-works">How it works</Link>
               </Button>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* ─── Statistics Banner ─────────────────────────────────────────────────── */}
-      <section className="border-y border-white/5 bg-white/5 backdrop-blur-md relative z-10 py-10">
-        <div className="container max-w-5xl mx-auto px-5">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <h4 className="text-3xl font-black text-cyan-400 font-[family-name:var(--font-mono)]">
-                14,200+
-              </h4>
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-[family-name:var(--font-mono)] mt-1">
-                // Active Runners
-              </p>
-            </div>
-            <div>
-              <h4 className="text-3xl font-black text-cyan-400 font-[family-name:var(--font-mono)]">
-                82,500+
-              </h4>
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-[family-name:var(--font-mono)] mt-1">
-                // Sectors Claimed
-              </p>
-            </div>
-            <div>
-              <h4 className="text-3xl font-black text-cyan-400 font-[family-name:var(--font-mono)]">
-                120,400+
-              </h4>
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-[family-name:var(--font-mono)] mt-1">
-                // Kilometers Traveled
-              </p>
-            </div>
-            <div>
-              <h4 className="text-3xl font-black text-cyan-400 font-[family-name:var(--font-mono)]">
-                35+
-              </h4>
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-[family-name:var(--font-mono)] mt-1">
-                // Countries Claimed
-              </p>
-            </div>
+      <section className="relative z-10 border-y border-white/8 bg-white/4 py-10 backdrop-blur-lg">
+        <div className="container mx-auto max-w-5xl px-5">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
+            {stats.map((stat) => (
+              <div
+                key={stat.label}
+                className="rounded-xl border border-white/8 bg-white/4 px-4 py-5 text-center"
+              >
+                <p className="text-2xl font-black text-cyan-200 md:text-3xl">
+                  {stat.value}
+                </p>
+                <p className="mt-1 text-xs text-slate-400">{stat.label}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ─── Core Features Grid ────────────────────────────────────────────────── */}
-      <section id="features" className="py-20 relative z-10">
-        <div className="container max-w-6xl mx-auto px-5">
-          <div className="text-center space-y-3 mb-16">
-            <h2 className="text-3xl font-black text-white tracking-widest uppercase font-[family-name:var(--font-header)]">
-              Game Mechanics
+      <section id="features" className="relative z-10 py-20">
+        <div className="container mx-auto max-w-6xl px-5">
+          <div className="mb-14 space-y-3 text-center">
+            <h2 className="text-3xl font-black text-white md:text-4xl">
+              Built for consistent training and real competition
             </h2>
-            <p className="text-xs text-slate-400 max-w-md mx-auto font-[family-name:var(--font-mono)]">
-              // Engineered with advanced geospatial mathematics and premium
-              tactical layouts.
+            <p className="mx-auto max-w-2xl text-sm leading-relaxed text-slate-300 md:text-base">
+              Every mechanic is designed to make movement rewarding, strategic, and social.
             </p>
           </div>
 
@@ -163,212 +198,115 @@ export default function LandingPage() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
           >
-            {/* GPS Tracking */}
-            <motion.div variants={itemVariants}>
-              <Card className="bg-[#0a0a0f]/60 backdrop-blur-xl border border-white/5 shadow-2xl h-full group relative overflow-hidden">
-                <CardContent className="p-6 space-y-4">
-                  <div className="p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 w-fit group-hover:scale-110 transition-transform duration-300">
-                    <Compass className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-lg font-bold text-white uppercase tracking-wide font-[family-name:var(--font-header)]">
-                    Live GPS Tracking
-                  </h3>
-                  <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                    Integrated directly with hardware sensors via geolocation
-                    watchPosition. Monitors speeds, tracks path polyline
-                    coordinates, and records routes incrementally.
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* H3 Grid Map */}
-            <motion.div variants={itemVariants}>
-              <Card className="bg-[#0a0a0f]/60 backdrop-blur-xl border border-white/5 shadow-2xl h-full group relative overflow-hidden">
-                <CardContent className="p-6 space-y-4">
-                  <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 w-fit group-hover:scale-110 transition-transform duration-300">
-                    <MapPin className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-lg font-bold text-white uppercase tracking-wide font-[family-name:var(--font-header)]">
-                    H3 Hexagonal Grid
-                  </h3>
-                  <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                    Powered by Uber H3 resolution 9 geospatial indexes. Every
-                    coordinate snaps atomically to a hexagonal sector,
-                    eliminating complex polygons overlaps.
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Anti-Cheat Engine */}
-            <motion.div variants={itemVariants}>
-              <Card className="bg-[#0a0a0f]/60 backdrop-blur-xl border border-white/5 shadow-2xl h-full group relative overflow-hidden">
-                <CardContent className="p-6 space-y-4">
-                  <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 w-fit group-hover:scale-110 transition-transform duration-300">
-                    <TrendingUp className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-lg font-bold text-white uppercase tracking-wide font-[family-name:var(--font-header)]">
-                    Anti-Cheat Engine
-                  </h3>
-                  <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                    Advanced serverside filters. Analyzes velocities and checks
-                    temporal teleport leaps via the Haversine formula to reject
-                    mock coordinates.
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Gamification */}
-            <motion.div variants={itemVariants}>
-              <Card className="bg-[#0a0a0f]/60 backdrop-blur-xl border border-white/5 shadow-2xl h-full group relative overflow-hidden">
-                <CardContent className="p-6 space-y-4">
-                  <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 w-fit group-hover:scale-110 transition-transform duration-300">
-                    <Trophy className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-lg font-bold text-white uppercase tracking-wide font-[family-name:var(--font-header)]">
-                    Progression & XP
-                  </h3>
-                  <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                    Earn experience points for moving. Walk, run, or cycle at
-                    custom XP rates. Level up from a Beginner up to a Legend,
-                    checking stats thresholds.
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Badges & Streaks */}
-            <motion.div variants={itemVariants}>
-              <Card className="bg-[#0a0a0f]/60 backdrop-blur-xl border border-white/5 shadow-2xl h-full group relative overflow-hidden">
-                <CardContent className="p-6 space-y-4">
-                  <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-500 w-fit group-hover:scale-110 transition-transform duration-300">
-                    <Flame className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-lg font-bold text-white uppercase tracking-wide font-[family-name:var(--font-header)]">
-                    Badges & Streaks
-                  </h3>
-                  <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                    Earn specialty achievements like Marathoner, Explorer, or
-                    Night Runner. Maintain daily exercise streaks (requires 1km
-                    target completed daily).
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Social Competitions */}
-            <motion.div variants={itemVariants}>
-              <Card className="bg-[#0a0a0f]/60 backdrop-blur-xl border border-white/5 shadow-2xl h-full group relative overflow-hidden">
-                <CardContent className="p-6 space-y-4">
-                  <div className="p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 w-fit group-hover:scale-110 transition-transform duration-300">
-                    <Users className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-lg font-bold text-white uppercase tracking-wide font-[family-name:var(--font-header)]">
-                    Social Networks
-                  </h3>
-                  <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                    Add workout friends, track their live locations on map,
-                    monitor social feeds, and climb private Friends brackets on
-                    leaderboards.
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
+            {features.map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <motion.div variants={itemVariants} key={feature.title}>
+                  <Card className="group h-full overflow-hidden rounded-2xl border-white/8 bg-white/5 shadow-2xl backdrop-blur-xl">
+                    <CardContent className="space-y-4 p-6">
+                      <div
+                        className={`w-fit rounded-lg border border-white/15 bg-white/5 p-3 transition-transform duration-300 group-hover:scale-105 ${feature.tone}`}
+                      >
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-white">{feature.title}</h3>
+                      <p className="text-sm leading-relaxed text-slate-300">
+                        {feature.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
           </motion.div>
         </div>
       </section>
 
-      {/* ─── How It Works ──────────────────────────────────────────────────────── */}
       <section
         id="how-it-works"
-        className="py-20 border-t border-white/5 bg-white/5 relative z-10"
+        className="relative z-10 border-y border-white/8 bg-white/4 py-20"
       >
-        <div className="container max-w-5xl mx-auto px-5">
-          <div className="text-center space-y-3 mb-16">
-            <h2 className="text-3xl font-extrabold text-white uppercase font-[family-name:var(--font-header)]">
-              Operational Loop
+        <div className="container mx-auto max-w-5xl px-5">
+          <div className="mb-14 space-y-3 text-center">
+            <h2 className="text-3xl font-black text-white md:text-4xl">
+              How StepClaim works
             </h2>
-            <p className="text-sm text-slate-400 max-w-sm mx-auto font-[family-name:var(--font-mono)]">
-              Three simple steps to establish command over your municipality.
+            <p className="mx-auto max-w-xl text-sm text-slate-300 md:text-base">
+              Three steps to convert everyday activity into progression and map control.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-            {/* Connecting Line */}
-            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-cyan-500/20 to-purple-600/20 -translate-y-1/2 hidden md:block z-0"></div>
-
-            {/* Step 1 */}
-            <div className="flex flex-col items-center text-center space-y-4 relative z-10">
-              <div className="w-12 h-12 rounded-full bg-[#0a0a0f] border border-cyan-500 text-cyan-400 flex items-center justify-center font-bold text-lg font-mono shadow-[0_0_15px_rgba(6,182,212,0.15)]">
-                1
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {steps.map((step, index) => (
+              <div
+                key={step.title}
+                className="rounded-2xl border border-white/10 bg-white/5 p-6 text-center"
+              >
+                <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full border border-cyan-300/40 bg-cyan-500/10 text-sm font-bold text-cyan-200">
+                  {index + 1}
+                </div>
+                <h3 className="text-base font-semibold text-white">{step.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-300">
+                  {step.description}
+                </p>
               </div>
-              <h3 className="text-base font-bold text-white uppercase tracking-wider font-[family-name:var(--font-header)]">
-                Start Moving
-              </h3>
-              <p className="text-xs text-slate-400 max-w-[220px] leading-relaxed">
-                Fire up the Live Run page, select your exercise (Walking,
-                Running, or Cycling), and watch your GPS track active
-                coordinates.
-              </p>
-            </div>
-
-            {/* Step 2 */}
-            <div className="flex flex-col items-center text-center space-y-4 relative z-10">
-              <div className="w-12 h-12 rounded-full bg-[#0a0a0f] border border-purple-500 text-purple-400 flex items-center justify-center font-bold text-lg font-mono shadow-[0_0_15px_rgba(168,85,247,0.15)]">
-                2
-              </div>
-              <h3 className="text-base font-bold text-white uppercase tracking-wider font-[family-name:var(--font-header)]">
-                Capture Hexagons
-              </h3>
-              <p className="text-xs text-slate-400 max-w-[220px] leading-relaxed">
-                As you physically intersect empty or enemy sectors, snapping
-                triggers transfer ownership and locks the sector for 30s.
-              </p>
-            </div>
-
-            {/* Step 3 */}
-            <div className="flex flex-col items-center text-center space-y-4 relative z-10">
-              <div className="w-12 h-12 rounded-full bg-[#0a0a0f] border border-yellow-500 text-yellow-400 flex items-center justify-center font-bold text-lg font-mono shadow-[0_0_15px_rgba(234,179,8,0.15)]">
-                3
-              </div>
-              <h3 className="text-base font-bold text-white uppercase tracking-wider font-[family-name:var(--font-header)]">
-                Climb Leaderboard
-              </h3>
-              <p className="text-xs text-slate-400 max-w-[220px] leading-relaxed">
-                Collect XP rewards, grow streaks, level up, unlock rare
-                achievements, and claim your spot on the Global ranks.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ─── Call to Action ────────────────────────────────────────────────────── */}
-      <section className="py-20 relative z-10 overflow-hidden border-t border-white/5">
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-purple-600/10 opacity-40"></div>
-        <div className="container max-w-4xl mx-auto px-5 text-center relative z-10 space-y-6">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white uppercase tracking-tight font-[family-name:var(--font-header)]">
-            Claim Your First Sector Today
+      <section className="relative z-10 overflow-hidden border-t border-white/8 py-20">
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/12 to-purple-500/12" />
+        <div className="container relative z-10 mx-auto max-w-4xl space-y-6 px-5 text-center">
+          <h2 className="text-3xl font-black text-white sm:text-4xl">
+            Ready to claim your first hex?
           </h2>
-          <p className="text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
-            Create your account in less than a minute, set up your profile
-            avatar, and step outside to capture your neighborhood.
+          <p className="mx-auto max-w-lg text-sm leading-relaxed text-slate-200 md:text-base">
+            Create your account, head outside, and start building a territory map from your real routes.
           </p>
-          <Button
-            asChild
-            size="lg"
-            className="h-12 px-10 text-sm font-bold uppercase tracking-wider mt-4 shadow-[0_0_20px_rgba(6,182,212,0.3)] bg-gradient-to-br from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 border border-white/20 text-white transition-all duration-300"
-          >
-            <Link href="/register">Join the Battle</Link>
-          </Button>
+          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Button
+              asChild
+              size="lg"
+              className="h-12 border border-white/20 bg-gradient-to-br from-cyan-500 to-purple-600 px-10 text-sm font-semibold text-white hover:from-cyan-400 hover:to-purple-500"
+            >
+              <Link href="/register">Create free account</Link>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="h-12 border-white/15 bg-white/5 px-8 text-sm text-slate-100"
+            >
+              <Link href="/leaderboard" className="flex items-center gap-2">
+                View leaderboard
+                <Trophy className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
+      <section className="relative z-10 border-t border-white/8 py-10">
+        <div className="container mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 px-5 text-center md:flex-row md:text-left">
+          <div>
+            <p className="text-sm font-semibold text-slate-100">
+              Fitness with strategy, community, and progression.
+            </p>
+            <p className="text-sm text-slate-400">
+              Walk more. Capture more. Improve consistently.
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
+            <Footprints className="h-3.5 w-3.5 text-cyan-300" />
+            <Globe className="h-3.5 w-3.5 text-purple-300" />
+            Global multiplayer fitness map
+          </div>
+        </div>
+      </section>
+
       <Footer />
     </div>
   );

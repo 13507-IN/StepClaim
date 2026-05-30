@@ -48,10 +48,7 @@ export default function LoginPage() {
       const res = await login(data);
       if (res.success) {
         success("Access Granted", "Logged in successfully!");
-
-        // Save userId locally for fast maps lookups
         localStorage.setItem("userId", res.data.user.id);
-
         router.push("/dashboard");
       }
     } catch (e: any) {
@@ -65,110 +62,105 @@ export default function LoginPage() {
   };
 
   return (
-    <Card className="bg-[#0a0a0f]/60 backdrop-blur-xl border border-white/5 rounded-2xl relative shadow-2xl overflow-visible">
-      {/* Cyber Technical Grid Accent */}
-      <div className="absolute top-0 right-12 w-24 h-1 border-x border-b border-cyan-500/30 bg-cyan-950/20 text-[7px] font-[family-name:var(--font-mono)] text-cyan-400/50 flex items-center justify-center tracking-widest px-1">
+    <Card className="relative overflow-visible rounded-2xl border border-white/10 bg-[#090c17]/70 shadow-2xl backdrop-blur-xl">
+      <div className="absolute right-12 top-0 flex h-1 w-24 items-center justify-center border-x border-b border-cyan-500/30 bg-cyan-950/20 px-1 text-[7px] tracking-widest text-cyan-400/50">
         SYS_AUTH_v1.4
       </div>
 
-      <CardHeader className="text-center space-y-2 pb-4 pt-8">
+      <CardHeader className="space-y-2 pb-4 pt-8 text-center">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 justify-center text-cyan-400 font-[family-name:var(--font-header)] font-black uppercase tracking-widest text-sm hover:opacity-85 transition-opacity"
+          className="inline-flex items-center justify-center gap-1.5 text-sm font-black uppercase tracking-widest text-cyan-300 transition-opacity hover:opacity-85"
         >
-          <Flame className="h-5 w-5 fill-cyan-400 animate-pulse" />
+          <Flame className="h-5 w-5 fill-cyan-300 animate-pulse" />
           StepClaim
         </Link>
 
-        <CardTitle className="text-2xl uppercase font-[family-name:var(--font-header)] font-black text-white tracking-widest">
-          Account Login
+        <CardTitle className="text-2xl font-black tracking-wide text-white">
+          Welcome back
         </CardTitle>
 
-        <div className="inline-flex items-center gap-1.5 text-[9px] font-[family-name:var(--font-mono)] text-cyan-400/90 uppercase tracking-widest bg-cyan-950/40 border border-cyan-500/20 px-3 py-1 rounded-full w-fit mx-auto">
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
-          Uplink: SECURE_CHANNEL_OK
+        <div className="mx-auto inline-flex w-fit items-center gap-1.5 rounded-full border border-cyan-400/20 bg-cyan-950/40 px-3 py-1 text-[10px] uppercase tracking-wider text-cyan-200/85">
+          <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 animate-pulse" />
+          Secure login channel
         </div>
 
-        <CardDescription className="text-[11px] font-[family-name:var(--font-mono)] text-slate-400 max-w-[280px] mx-auto pt-2">
-          // Welcome back recruit. Key in your credentials to deploy.
+        <CardDescription className="mx-auto max-w-[300px] pt-2 text-sm text-slate-300">
+          Sign in to continue tracking runs, capturing territory, and climbing the leaderboard.
         </CardDescription>
       </CardHeader>
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-5 px-6 pb-4">
-          {/* Email Field */}
           <div className="space-y-2">
             <Label
               htmlFor="email"
-              className="font-[family-name:var(--font-mono)] text-[10px] text-cyan-400/70 uppercase tracking-widest"
+              className="text-[11px] uppercase tracking-wider text-cyan-200/75"
             >
-              &gt; Email Address
+              Email address
             </Label>
             <Input
               id="email"
               type="email"
-              placeholder="recruit@stepclaim.com"
-              className="flex h-10 w-full rounded-md border border-white/10 bg-[#0a0a0f]/50 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="you@example.com"
+              className="h-10 border-white/12 bg-[#0a0d18]/70 text-white placeholder:text-slate-500"
               {...register("email")}
             />
             {errors.email && (
-              <p className="text-[10px] font-[family-name:var(--font-mono)] font-semibold text-red-400 mt-1 pl-1">
-                !! {errors.email.message}
+              <p className="mt-1 pl-1 text-[11px] font-semibold text-red-400">
+                {errors.email.message}
               </p>
             )}
           </div>
 
-          {/* Password Field */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label
-                htmlFor="password"
-                className="font-[family-name:var(--font-mono)] text-[10px] text-cyan-400/70 uppercase tracking-widest"
-              >
-                &gt; Security Cipher (Password)
-              </Label>
-            </div>
+            <Label
+              htmlFor="password"
+              className="text-[11px] uppercase tracking-wider text-cyan-200/75"
+            >
+              Password
+            </Label>
             <Input
               id="password"
               type="password"
               placeholder="••••••••"
-              className="flex h-10 w-full rounded-md border border-white/10 bg-[#0a0a0f]/50 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="h-10 border-white/12 bg-[#0a0d18]/70 text-white placeholder:text-slate-500"
               {...register("password")}
             />
             {errors.password && (
-              <p className="text-[10px] font-[family-name:var(--font-mono)] font-semibold text-red-400 mt-1 pl-1">
-                !! {errors.password.message}
+              <p className="mt-1 pl-1 text-[11px] font-semibold text-red-400">
+                {errors.password.message}
               </p>
             )}
           </div>
         </CardContent>
 
-        <CardFooter className="flex flex-col space-y-4 pt-2 pb-8 px-6">
+        <CardFooter className="flex flex-col space-y-4 px-6 pb-8 pt-2">
           <Button
             type="submit"
             disabled={loading}
-            className="w-full h-11 font-[family-name:var(--font-header)] font-extrabold uppercase tracking-widest text-xs shadow-[0_0_15px_rgba(6,182,212,0.3)] bg-gradient-to-br from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 border border-white/20 text-white transition-all duration-300"
+            className="h-11 w-full border border-white/20 bg-gradient-to-br from-cyan-500 to-purple-600 text-xs font-semibold uppercase tracking-wider text-white shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all duration-300 hover:from-cyan-400 hover:to-purple-500"
           >
             {loading ? (
               <span className="flex items-center justify-center">
-                <Loader2 className="h-4 w-4 mr-2 animate-spin text-white" />
-                Establishing Link...
+                <Loader2 className="mr-2 h-4 w-4 animate-spin text-white" />
+                Signing in...
               </span>
             ) : (
               <span className="flex items-center justify-center gap-1.5">
-                Deploy Profile
+                Sign in
                 <ArrowRight className="h-4 w-4" />
               </span>
             )}
           </Button>
 
-          <p className="text-[11px] font-[family-name:var(--font-mono)] text-center text-slate-400">
-            First mission?{" "}
+          <p className="text-center text-xs text-slate-400">
+            New to StepClaim?{" "}
             <Link
               href="/register"
-              className="text-cyan-400 hover:text-cyan-300 transition-colors font-bold uppercase tracking-wider ml-1"
+              className="ml-1 font-semibold text-cyan-300 transition-colors hover:text-cyan-200"
             >
-              [ Register Sector ]
+              Create an account
             </Link>
           </p>
         </CardFooter>

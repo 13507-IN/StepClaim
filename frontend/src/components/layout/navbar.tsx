@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -41,6 +41,18 @@ export function Navbar() {
   const pathname = usePathname();
   const { user, isAuthenticated, logout } = useAuth();
 
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`);
 
@@ -57,7 +69,7 @@ export function Navbar() {
     <>
       <nav
         className={cn(
-          "z-50 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/10",
+          "z-50 border-b border-white/10 bg-[#090b13]/80 backdrop-blur-xl",
           isShellRoute
             ? "sticky top-0 left-0 right-0"
             : "fixed top-0 inset-x-0",
@@ -79,7 +91,7 @@ export function Navbar() {
               )}
             >
               <Hexagon className="h-7 w-7 text-cyan-400 transition-transform group-hover:rotate-[30deg]" />
-              <span className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+              <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
                 StepClaim
               </span>
             </Link>
@@ -100,10 +112,10 @@ export function Navbar() {
                       key={link.href}
                       href={link.href}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                        "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
                         active
-                          ? "bg-white/10 text-cyan-400"
-                          : "text-slate-400 hover:bg-white/5 hover:text-slate-100",
+                          ? "bg-cyan-500/12 text-cyan-200 ring-1 ring-cyan-400/25"
+                          : "text-slate-400 hover:bg-white/6 hover:text-slate-100",
                       )}
                     >
                       <Icon className="h-4 w-4" />
@@ -133,7 +145,7 @@ export function Navbar() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="end"
-                    className="w-56 bg-[#0f0f1a]/95 backdrop-blur-xl border border-white/10 text-slate-200"
+                    className="w-56 border border-white/10 bg-[#0f1220]/95 text-slate-200 backdrop-blur-xl"
                   >
                     <DropdownMenuLabel className="text-slate-400 font-normal text-xs">
                       {user?.email ?? user?.username}
@@ -191,7 +203,7 @@ export function Navbar() {
               {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="md:hidden p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/5 transition"
+                className="rounded-lg p-2 text-slate-400 transition hover:bg-white/5 hover:text-slate-100 md:hidden"
                 aria-label="Toggle mobile menu"
               >
                 {mobileOpen ? (
@@ -224,10 +236,10 @@ export function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed top-0 right-0 bottom-0 z-50 w-72 bg-[#0a0a0f]/95 backdrop-blur-xl border-l border-white/10 md:hidden"
+              className="fixed bottom-0 right-0 top-0 z-50 w-72 border-l border-white/10 bg-[#090b14]/95 backdrop-blur-xl md:hidden"
             >
               <div className="flex items-center justify-between p-4 border-b border-white/10">
-                <span className="text-lg font-semibold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+                <span className="text-lg font-semibold bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
                   StepClaim
                 </span>
                 <button
@@ -252,7 +264,7 @@ export function Navbar() {
                           className={cn(
                             "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all",
                             active
-                              ? "bg-white/10 text-cyan-400"
+                              ? "bg-cyan-500/12 text-cyan-200 ring-1 ring-cyan-400/25"
                               : "text-slate-400 hover:bg-white/5 hover:text-slate-100",
                           )}
                         >

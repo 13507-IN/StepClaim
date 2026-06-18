@@ -10,6 +10,7 @@ export interface User {
   xp: number;
   streak: number;
   totalDistance: number;
+  territoryCount: number;
 }
 
 interface UserState {

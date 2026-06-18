@@ -9,14 +9,15 @@ const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapCo
 const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
 const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false });
 const Circle = dynamic(() => import('react-leaflet').then(mod => mod.Circle), { ssr: false });
-const Polygon = dynamic(() => import('react-leaflet').then(mod => mod.Polygon), { ssr: false });
+const Polyline = dynamic(() => import('react-leaflet').then(mod => mod.Polyline), { ssr: false });
 
 interface DynamicMapProps {
   center: [number, number];
   interactive?: boolean;
+  routePath?: [number, number][];
 }
 
-export function DynamicMap({ center, interactive = true }: DynamicMapProps) {
+export function DynamicMap({ center, interactive = true, routePath = [] }: DynamicMapProps) {
   // Fix Leaflet icons issue in Next.js
   useEffect(() => {
     (async function init() {
@@ -30,6 +31,13 @@ export function DynamicMap({ center, interactive = true }: DynamicMapProps) {
     })();
   }, []);
 
+  // Component to handle map re-centering
+  const MapRecenter = ({ center }: { center: [number, number] }) => {
+    const map = import('react-leaflet').then(mod => mod.useMap) as any;
+    // We have to use a workaround because useMap must be imported from react-leaflet inside MapContainer
+    return null;
+  };
+
   return (
     <div className="w-full h-full relative rounded-xl overflow-hidden shadow-sm border border-[var(--color-border)]">
       <MapContainer 
@@ -40,11 +48,20 @@ export function DynamicMap({ center, interactive = true }: DynamicMapProps) {
         zoomControl={interactive}
         className="w-full h-full"
       >
+        <MapUpdater center={center} />
         {/* Sleek Light/Dark Mode friendly map tiles from CartoDB */}
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         />
+
+        {/* Draw the user's running path */}
+        {routePath.length > 1 && (
+          <Polyline 
+            positions={routePath} 
+            pathOptions={{ color: 'var(--color-primary)', weight: 5, opacity: 0.7 }} 
+          />
+        )}
 
         {/* User Location Marker */}
         <Marker position={center} />
@@ -58,4 +75,14 @@ export function DynamicMap({ center, interactive = true }: DynamicMapProps) {
       </MapContainer>
     </div>
   );
+}
+
+// Inner component to handle flyTo because useMap must be inside MapContainer
+function MapUpdater({ center }: { center: [number, number] }) {
+  const { useMap } = require('react-leaflet');
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, map.getZoom(), { animate: true, duration: 1 });
+  }, [center, map]);
+  return null;
 }

@@ -1,0 +1,61 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
+import 'leaflet/dist/leaflet.css';
+
+// Dynamic import for React-Leaflet to avoid SSR issues
+const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
+const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
+const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false });
+const Circle = dynamic(() => import('react-leaflet').then(mod => mod.Circle), { ssr: false });
+const Polygon = dynamic(() => import('react-leaflet').then(mod => mod.Polygon), { ssr: false });
+
+interface DynamicMapProps {
+  center: [number, number];
+  interactive?: boolean;
+}
+
+export function DynamicMap({ center, interactive = true }: DynamicMapProps) {
+  // Fix Leaflet icons issue in Next.js
+  useEffect(() => {
+    (async function init() {
+      const L = await import('leaflet');
+      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      });
+    })();
+  }, []);
+
+  return (
+    <div className="w-full h-full relative rounded-xl overflow-hidden shadow-sm border border-[var(--color-border)]">
+      <MapContainer 
+        center={center} 
+        zoom={16} 
+        scrollWheelZoom={interactive}
+        dragging={interactive}
+        zoomControl={interactive}
+        className="w-full h-full"
+      >
+        {/* Sleek Light/Dark Mode friendly map tiles from CartoDB */}
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        />
+
+        {/* User Location Marker */}
+        <Marker position={center} />
+        
+        {/* User Location accuracy circle indicator */}
+        <Circle 
+          center={center} 
+          pathOptions={{ fillColor: 'var(--color-primary)', color: 'var(--color-primary)', weight: 1 }} 
+          radius={50} 
+        />
+      </MapContainer>
+    </div>
+  );
+}

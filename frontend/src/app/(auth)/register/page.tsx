@@ -42,7 +42,7 @@ export default function RegisterPage() {
         setError(response.message || 'Registration failed');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred during registration');
+      setError(err.response?.data?.error || err.response?.data?.message || 'An error occurred during registration');
     } finally {
       setLoading(false);
     }

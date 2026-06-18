@@ -1,36 +1,16 @@
-import React from 'react';
-import type { Metadata } from 'next';
-import { Inter, Space_Grotesk, Share_Tech_Mono } from 'next/font/google';
-import './globals.css';
-import { QueryProvider } from '@/contexts/query-provider';
-import { AuthProvider } from '@/contexts/auth-provider';
-import { SocketProvider } from '@/contexts/socket-context';
-import { ToastProvider } from '@/components/ui/toast';
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import Providers from "@/components/providers";
 
 const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-sans',
-});
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-header',
-});
-
-const shareTechMono = Share_Tech_Mono({
-  weight: '400',
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-mono',
+  variable: "--font-inter",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: 'StepClaim | Territory-Capture Real-World Fitness Game',
-  description:
-    'Walk, run, or cycle to capture virtual H3 hexagonal territories in real-time. Exercise through strategy, progression, and real-time multiplayer competition.',
-  keywords: 'fitness game, strava, pokemon go, territory capture, H3 hexagons, walk to claim, run to win',
+  title: "StepClaim | Real-World Movement Game",
+  description: "Capture territories by tracking your real-world movement.",
 };
 
 export default function RootLayout({
@@ -39,21 +19,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark scroll-smooth">
-      <body
-        className={`${inter.variable} ${spaceGrotesk.variable} ${shareTechMono.variable} font-sans antialiased bg-[#0a0a0f] text-slate-200 min-h-screen flex flex-col`}
-      >
-        <QueryProvider>
-          <AuthProvider>
-            <SocketProvider>
-              <ToastProvider>
-                <div className="flex-1 flex flex-col relative overflow-x-hidden">
-                  {children}
-                </div>
-              </ToastProvider>
-            </SocketProvider>
-          </AuthProvider>
-        </QueryProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} font-sans`} suppressHydrationWarning>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

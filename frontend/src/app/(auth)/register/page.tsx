@@ -36,7 +36,7 @@ export default function RegisterPage() {
     try {
       const response = await authService.register(data);
       if (response.success && response.data) {
-        setAuth(response.data.user, response.data.token);
+        setAuth(response.data.user, response.data.accessToken);
         router.push('/dashboard');
       } else {
         setError(response.message || 'Registration failed');

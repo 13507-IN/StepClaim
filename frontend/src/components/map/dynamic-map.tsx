@@ -9,15 +9,17 @@ const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapCo
 const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
 const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false });
 const Circle = dynamic(() => import('react-leaflet').then(mod => mod.Circle), { ssr: false });
-const Polyline = dynamic(() => import('react-leaflet').then(mod => mod.Polyline), { ssr: false });
+const Polygon = dynamic(() => import('react-leaflet').then(mod => mod.Polygon), { ssr: false });
+const Tooltip = dynamic(() => import('react-leaflet').then(mod => mod.Tooltip), { ssr: false });
 
 interface DynamicMapProps {
   center: [number, number];
   interactive?: boolean;
   routePath?: [number, number][];
+  username?: string;
 }
 
-export function DynamicMap({ center, interactive = true, routePath = [] }: DynamicMapProps) {
+export function DynamicMap({ center, interactive = true, routePath = [], username }: DynamicMapProps) {
   // Fix Leaflet icons issue in Next.js
   useEffect(() => {
     (async function init() {
@@ -34,7 +36,6 @@ export function DynamicMap({ center, interactive = true, routePath = [] }: Dynam
   // Component to handle map re-centering
   const MapRecenter = ({ center }: { center: [number, number] }) => {
     const map = import('react-leaflet').then(mod => mod.useMap) as any;
-    // We have to use a workaround because useMap must be imported from react-leaflet inside MapContainer
     return null;
   };
 
@@ -55,12 +56,32 @@ export function DynamicMap({ center, interactive = true, routePath = [] }: Dynam
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         />
 
-        {/* Draw the user's running path */}
-        {routePath.length > 1 && (
-          <Polyline 
+        {/* Draw the user's claimed territory as a Polygon */}
+        {routePath.length > 2 && (
+          <Polygon 
             positions={routePath} 
-            pathOptions={{ color: 'var(--color-primary)', weight: 5, opacity: 0.7 }} 
-          />
+            pathOptions={{ 
+              color: 'var(--color-primary)', 
+              weight: 3, 
+              dashArray: '10, 10', // Dotted line
+              fillColor: 'var(--color-primary)', 
+              fillOpacity: 0.3 
+            }}
+          >
+            {username && (
+              <Tooltip permanent direction="center" className="bg-transparent border-0 shadow-none text-[var(--color-primary)] font-bold text-lg drop-shadow-md">
+                {username}'s Territory
+              </Tooltip>
+            )}
+          </Polygon>
+        )}
+
+        {/* Fallback to Polyline if less than 3 points (cannot form a polygon yet) */}
+        {routePath.length === 2 && (
+           <Polygon 
+             positions={routePath} 
+             pathOptions={{ color: 'var(--color-primary)', weight: 3, dashArray: '10, 10' }} 
+           />
         )}
 
         {/* User Location Marker */}

@@ -37,7 +37,7 @@ export default function LoginPage() {
     try {
       const response = await authService.login(data);
       if (response.success && response.data) {
-        setAuth(response.data.user, response.data.token);
+        setAuth(response.data.user, response.data.accessToken);
         router.push('/dashboard');
       } else {
         setError(response.message || 'Login failed');

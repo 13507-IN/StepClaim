@@ -51,3 +51,18 @@ html, body {
     @apply bg-white/70 dark:bg-black/40 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-lg;
   }
 }
+
+/* Custom Leaflet Map Overrides */
+.custom-map-tooltip {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--color-primary) !important;
+  font-weight: 800 !important;
+  font-size: 1.25rem !important;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.8), 0 0 5px var(--color-primary) !important;
+}
+.custom-map-tooltip::before,
+.custom-map-tooltip::after {
+  display: none !important;
+}

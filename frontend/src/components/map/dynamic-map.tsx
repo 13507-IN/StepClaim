@@ -50,9 +50,9 @@ export function DynamicMap({ center, interactive = true, routePath = [], usernam
         className="w-full h-full"
       >
         <MapUpdater center={center} />
-        {/* Sleek Light/Dark Mode friendly map tiles from CartoDB */}
+        {/* Sleek Premium Dark Mode map tiles from CartoDB */}
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         />
 
@@ -65,11 +65,11 @@ export function DynamicMap({ center, interactive = true, routePath = [], usernam
               weight: 3, 
               dashArray: '10, 10', // Dotted line
               fillColor: 'var(--color-primary)', 
-              fillOpacity: 0.3 
+              fillOpacity: 0.2 
             }}
           >
             {username && (
-              <Tooltip permanent direction="center" className="bg-transparent border-0 shadow-none text-[var(--color-primary)] font-bold text-lg drop-shadow-md">
+              <Tooltip permanent direction="center" className="custom-map-tooltip">
                 {username}'s Territory
               </Tooltip>
             )}

@@ -13,7 +13,7 @@ export function useSocket() {
     if (!token) return;
 
     // Connect to backend websocket
-    const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000', {
+    const socket = io(process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000', {
       auth: { token },
       transports: ['websocket'],
     });

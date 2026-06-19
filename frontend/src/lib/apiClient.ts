@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { useUserStore } from '../store/useUserStore';
 
-// Determine the base URL based on environment
-const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+const baseURL = `${backendUrl}/api/v1`;
 
 export const apiClient = axios.create({
   baseURL,

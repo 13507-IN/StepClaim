@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+// removed
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/providers";
@@ -8,9 +8,25 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
+import type { Metadata, Viewport } from "next";
+
 export const metadata: Metadata = {
   title: "StepClaim | Real-World Movement Game",
   description: "Capture territories by tracking your real-world movement.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "StepClaim",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#09090b",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({

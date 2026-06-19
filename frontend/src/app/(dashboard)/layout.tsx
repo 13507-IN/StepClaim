@@ -1,8 +1,27 @@
-import { Hexagon, LayoutDashboard, MapPin, User, Settings } from 'lucide-react';
+'use client';
+
+import { Hexagon, LayoutDashboard, MapPin, User, Settings, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
+import { useUserStore } from '@/store/useUserStore';
+import { authService } from '@/services/auth.api';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  const clearAuth = useUserStore((state) => state.clearAuth);
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch (err) {
+      console.error('Logout failed:', err);
+    } finally {
+      clearAuth();
+      router.push('/login');
+    }
+  };
+
   return (
     <div className="min-h-screen flex bg-[var(--color-background)]">
       {/* Sidebar */}
@@ -31,16 +50,30 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             Settings
           </Link>
         </nav>
+        
+        {/* Logout Button */}
+        <div className="p-4 border-t border-[var(--color-border)]">
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-red-500/10 text-red-500 transition-colors font-medium"
+          >
+            <LogOut className="h-5 w-5" />
+            Log Out
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Mobile Header */}
-        <header className="h-16 md:hidden border-b border-[var(--color-border)] bg-[var(--color-surface)] flex items-center px-4">
+        <header className="h-16 md:hidden border-b border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2 text-[var(--color-primary)] font-bold text-lg">
             <Hexagon className="h-5 w-5" />
             StepClaim
           </Link>
+          <button onClick={handleLogout} className="p-2 text-red-500 rounded-md hover:bg-red-500/10">
+            <LogOut className="h-5 w-5" />
+          </button>
         </header>
 
         {/* Page Content */}

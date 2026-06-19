@@ -25,4 +25,8 @@ export const authService = {
     const response = await apiClient.get<AuthResponse>('/auth/me');
     return response.data;
   },
+
+  logout: async (): Promise<void> => {
+    await apiClient.post('/auth/logout');
+  },
 };

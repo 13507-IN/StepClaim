@@ -12,14 +12,17 @@ const Circle = dynamic(() => import('react-leaflet').then(mod => mod.Circle), { 
 const Polygon = dynamic(() => import('react-leaflet').then(mod => mod.Polygon), { ssr: false });
 const Tooltip = dynamic(() => import('react-leaflet').then(mod => mod.Tooltip), { ssr: false });
 
+import { cellToBoundary } from 'h3-js';
+
 interface DynamicMapProps {
   center: [number, number];
   interactive?: boolean;
   routePath?: [number, number][];
   username?: string;
+  capturedTerritories?: string[];
 }
 
-export function DynamicMap({ center, interactive = true, routePath = [], username }: DynamicMapProps) {
+export function DynamicMap({ center, interactive = true, routePath = [], username, capturedTerritories = [] }: DynamicMapProps) {
   // Fix Leaflet icons issue in Next.js
   useEffect(() => {
     (async function init() {
@@ -55,6 +58,29 @@ export function DynamicMap({ center, interactive = true, routePath = [], usernam
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         />
+
+        {/* Render previously captured territories from H3 indices */}
+        {capturedTerritories.map((gridId) => {
+          try {
+            // cellToBoundary returns [lat, lng][] for the hexagon vertices
+            const boundary = cellToBoundary(gridId);
+            return (
+              <Polygon 
+                key={gridId}
+                positions={boundary} 
+                pathOptions={{ 
+                  color: 'var(--color-primary)', 
+                  weight: 2, 
+                  fillColor: 'var(--color-primary)', 
+                  fillOpacity: 0.15,
+                  opacity: 0.5
+                }}
+              />
+            );
+          } catch (e) {
+            return null; // Ignore invalid H3 indices
+          }
+        })}
 
         {/* Draw the user's claimed territory as a Polygon */}
         {routePath.length > 2 && (

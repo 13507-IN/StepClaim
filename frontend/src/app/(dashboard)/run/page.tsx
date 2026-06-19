@@ -25,14 +25,28 @@ export default function LiveRunPage() {
   const [distance, setDistance] = useState(0); // distance in km
   const [routePath, setRoutePath] = useState<[number, number][]>([]);
   
-  // Default fallback center
   const [mapCenter, setMapCenter] = useState<[number, number]>([40.7128, -74.0060]);
+  const [capturedTerritories, setCapturedTerritories] = useState<string[]>([]);
 
   // Request GPS when component mounts
   const { location, error, loading: gpsLoading } = useGPS(true);
   
   // Ref to hold the last processed location to calculate distance deltas
   const lastLocationRef = useRef<[number, number] | null>(null);
+
+  // Fetch previously captured territories on load
+  useEffect(() => {
+    async function loadTerritories() {
+      try {
+        const { territoryService } = await import('@/services/territory.api');
+        const territories = await territoryService.getMyTerritories();
+        setCapturedTerritories(territories.map(t => t.gridId));
+      } catch (err) {
+        console.error('Failed to load territories:', err);
+      }
+    }
+    loadTerritories();
+  }, []);
 
   // Update map center automatically whenever GPS gets a new live location
   // Also calculate distance, draw path, and emit socket event if running
@@ -132,7 +146,13 @@ export default function LiveRunPage() {
 
       {/* Map Container */}
       <div className="flex-1 w-full relative rounded-xl overflow-hidden shadow-lg border border-[var(--color-border)]">
-        <DynamicMap center={mapCenter} interactive={true} routePath={routePath} username={user?.username} />
+        <DynamicMap 
+          center={mapCenter} 
+          interactive={true} 
+          routePath={routePath} 
+          username={user?.username} 
+          capturedTerritories={capturedTerritories} 
+        />
       </div>
 
       {/* Run Controls */}

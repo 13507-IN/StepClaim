@@ -1,13 +1,50 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Activity, Flame, Hexagon, Route, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { useUserStore } from '@/store/useUserStore';
+import { runService, RunHistoryItem } from '@/services/run.api';
+import { territoryService, Territory } from '@/services/territory.api';
+
+type ActivityItem = 
+  | { type: 'RUN'; data: RunHistoryItem; timestamp: Date }
+  | { type: 'TERRITORY'; data: Territory; timestamp: Date };
 
 export default function DashboardOverview() {
   const user = useUserStore((state) => state.user);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadActivities() {
+      try {
+        const [runs, territories] = await Promise.all([
+          runService.getHistory(1, 10),
+          territoryService.getMyTerritories()
+        ]);
+
+        const combined: ActivityItem[] = [
+          ...runs.map((r) => ({ type: 'RUN' as const, data: r, timestamp: new Date(r.startTime) })),
+          ...territories.map((t) => ({ type: 'TERRITORY' as const, data: t, timestamp: new Date(t.capturedAt) }))
+        ];
+
+        // Sort descending
+        combined.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+        setActivities(combined.slice(0, 5)); // Take top 5
+      } catch (e) {
+        console.error('Failed to load recent activity:', e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    if (user) {
+      loadActivities();
+    }
+  }, [user]);
 
   if (!user) {
     return <div className="p-6 text-center">Loading dashboard...</div>;
@@ -15,6 +52,26 @@ export default function DashboardOverview() {
 
   // Calculate XP progress to next level (mock logic: 1000 XP per level)
   const xpProgress = (user.xp % 1000) / 10;
+
+  const getActivityName = (hour: number) => {
+    if (hour >= 5 && hour < 12) return 'Morning Run';
+    if (hour >= 12 && hour < 17) return 'Afternoon Exercise';
+    if (hour >= 17 && hour < 21) return 'Evening Walk';
+    return 'Night Run';
+  };
+
+  const formatRelativeTime = (date: Date) => {
+    const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+    const daysDifference = Math.round((date.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysDifference === 0) {
+      return `Today, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    }
+    if (daysDifference === -1) {
+      return `Yesterday, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    }
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
 
   return (
     <div className="p-6 space-y-8 max-w-6xl mx-auto">
@@ -90,36 +147,39 @@ export default function DashboardOverview() {
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between border-b border-[var(--color-border)] pb-4 last:border-0 last:pb-0">
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center">
-                  <Route className="h-5 w-5 text-[var(--color-primary)]" />
+            {loading ? (
+              <div className="text-sm text-[var(--color-foreground)]/60">Loading activity...</div>
+            ) : activities.length === 0 ? (
+              <div className="text-sm text-[var(--color-foreground)]/60">No recent activity yet. Start running!</div>
+            ) : (
+              activities.map((activity, i) => (
+                <div key={i} className="flex items-center justify-between border-b border-[var(--color-border)] pb-4 last:border-0 last:pb-0">
+                  <div className="flex items-center gap-4">
+                    <div className={`h-10 w-10 rounded-full flex items-center justify-center ${activity.type === 'RUN' ? 'bg-[var(--color-primary)]/10' : 'bg-[var(--color-accent)]/10'}`}>
+                      {activity.type === 'RUN' ? (
+                        <Route className="h-5 w-5 text-[var(--color-primary)]" />
+                      ) : (
+                        <Hexagon className="h-5 w-5 text-[var(--color-accent)]" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">
+                        {activity.type === 'RUN' ? getActivityName(activity.timestamp.getHours()) : 'Territory Captured'}
+                      </p>
+                      <p className="text-xs text-[var(--color-foreground)]/60">{formatRelativeTime(activity.timestamp)}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-sm">
+                      {activity.type === 'RUN' ? `${activity.data.distance.toFixed(2)} km` : `Grid Capture`}
+                    </p>
+                    <p className="text-xs text-[var(--color-success)]">
+                      +{activity.type === 'RUN' ? activity.data.xpEarned : activity.data.capturePoints} XP
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-sm">Morning Run</p>
-                  <p className="text-xs text-[var(--color-foreground)]/60">Today, 7:00 AM</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-sm">5.2 km</p>
-                <p className="text-xs text-[var(--color-success)]">+120 XP</p>
-              </div>
-            </div>
-            <div className="flex items-center justify-between border-b border-[var(--color-border)] pb-4 last:border-0 last:pb-0">
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center">
-                  <Hexagon className="h-5 w-5 text-[var(--color-accent)]" />
-                </div>
-                <div>
-                  <p className="font-semibold text-sm">Territory Captured</p>
-                  <p className="text-xs text-[var(--color-foreground)]/60">Yesterday, 6:30 PM</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-sm">Downtown Park</p>
-                <p className="text-xs text-[var(--color-success)]">+50 XP</p>
-              </div>
-            </div>
+              ))
+            )}
           </CardContent>
         </Card>
       </div>

@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-form'; // Wait, I didn't install this, I installed react-hook-form
-// Actually let's use standard state for simplicity or react-hook-form since I installed it
 import { useForm as useRHForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';

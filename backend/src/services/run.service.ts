@@ -41,8 +41,9 @@ export class RunService {
     const endTime = new Date();
     const duration = Math.max(Math.round((endTime.getTime() - run.startTime.getTime()) / 1000), 1); // seconds
 
-    // Pull tracking points to calculate cumulative distance
-    const locations = run.locations;
+    // Re-read the run right before final calculation so late trackpoints are included.
+    const finalRun = await this.runRepo.findById(runId);
+    const locations = finalRun?.locations || [];
     let distance = 0;
     
     if (locations.length >= 2) {
@@ -56,7 +57,7 @@ export class RunService {
         );
       }
     } else {
-      distance = run.distance;
+      distance = finalRun?.distance ?? run.distance;
     }
 
     const averageSpeed = duration > 0 ? distance / duration : 0.0; // m/s

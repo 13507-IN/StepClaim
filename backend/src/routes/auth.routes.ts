@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { AuthController } from '../controllers/auth.controller';
 import { validate } from '../middleware/validate.middleware';
+import { authMiddleware } from '../middleware/auth.middleware';
 import { loginSchema } from '../validators/auth.validator';
 
 /**
@@ -20,5 +21,8 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
 
   // Logout endpoint (clears active cookies and deletes Redis sessions)
   fastify.post('/logout', controller.logout);
+
+  // Get current user profile endpoint
+  fastify.get('/me', { preHandler: authMiddleware }, controller.me);
 }
 export default authRoutes;

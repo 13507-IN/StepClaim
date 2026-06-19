@@ -128,4 +128,15 @@ export class AuthService {
   async logout(userId: string): Promise<void> {
     await redis.del(`refreshToken:${userId}`);
   }
+
+  /**
+   * Get the current user profile.
+   */
+  async getMe(userId: string): Promise<User> {
+    const user = await this.userRepo.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user;
+  }
 }

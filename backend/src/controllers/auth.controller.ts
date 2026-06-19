@@ -132,6 +132,27 @@ export class AuthController {
     }
   };
 
+  /**
+   * Get endpoint handler to fetch the currently authenticated user profile.
+   */
+  me = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+    try {
+      const userId = request.user?.userId;
+      if (!userId) {
+        reply.status(401).send(errorResponse('Authentication required'));
+        return;
+      }
+      const user = await this.authService.getMe(userId);
+      reply.status(200).send(
+        successResponse({
+          user: this.sanitizeUser(user),
+        }, 'User fetched successfully'),
+      );
+    } catch (error: any) {
+      reply.status(404).send(errorResponse(error.message));
+    }
+  };
+
   // ─── Helpers ───────────────────────────────────────────────────────────────
 
   /**

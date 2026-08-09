@@ -17,6 +17,9 @@ export async function runRoutes(fastify: FastifyInstance): Promise<void> {
   // Start activity session
   fastify.post('/start', controller.start);
 
+  // Send location trackpoint update via HTTP REST
+  fastify.post('/location', controller.trackpoint);
+
   // Stop/Commit activity session
   fastify.post('/end', controller.end);
 

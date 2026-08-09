@@ -105,4 +105,38 @@ export class RunController {
       reply.status(500).send(errorResponse(error.message));
     }
   };
+
+  /**
+   * Log a location trackpoint update via HTTP REST.
+   */
+  trackpoint = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+    try {
+      const userId = request.user?.userId;
+      if (!userId) {
+        reply.status(401).send(errorResponse('Unauthorized'));
+        return;
+      }
+
+      const { latitude, longitude, speed = 0, activityType = 'RUNNING', runId = null } = request.body as {
+        latitude: number;
+        longitude: number;
+        speed?: number;
+        activityType?: 'WALKING' | 'RUNNING' | 'CYCLING';
+        runId?: string | null;
+      };
+
+      if (latitude === undefined || longitude === undefined) {
+        reply.status(400).send(errorResponse('Latitude and Longitude are required'));
+        return;
+      }
+
+      const { GpsService } = await import('../services/gps.service.js');
+      const gpsService = new GpsService();
+      const result = await gpsService.processLocationUpdate(userId, runId, latitude, longitude, speed, activityType);
+
+      reply.status(200).send(successResponse(result, 'Location processed successfully'));
+    } catch (error: any) {
+      reply.status(400).send(errorResponse(error.message));
+    }
+  };
 }

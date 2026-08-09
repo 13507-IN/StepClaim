@@ -153,19 +153,24 @@ export default function DashboardOverview() {
               <div className="text-sm text-[var(--color-foreground)]/60">No recent activity yet. Start running!</div>
             ) : (
               activities.map((activity, i) => (
-                <div key={i} className="flex items-center justify-between border-b border-[var(--color-border)] pb-4 last:border-0 last:pb-0">
+                <div key={i} className="flex items-center justify-between border-b border-[var(--color-border)] pb-4 last:border-0 last:pb-0 hover:bg-white/5 p-2 rounded-xl transition-colors">
                   <div className="flex items-center gap-4">
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center ${activity.type === 'RUN' ? 'bg-[var(--color-primary)]/10' : 'bg-[var(--color-accent)]/10'}`}>
+                    <div className={`h-10 w-10 rounded-full flex items-center justify-center ${activity.type === 'RUN' ? 'bg-[#FC4C02]/10' : 'bg-[var(--color-accent)]/10'}`}>
                       {activity.type === 'RUN' ? (
-                        <Route className="h-5 w-5 text-[var(--color-primary)]" />
+                        <Route className="h-5 w-5 text-[#FC4C02]" />
                       ) : (
                         <Hexagon className="h-5 w-5 text-[var(--color-accent)]" />
                       )}
                     </div>
                     <div>
-                      <p className="font-semibold text-sm">
-                        {activity.type === 'RUN' ? getActivityName(activity.timestamp.getHours()) : 'Territory Captured'}
-                      </p>
+                      {activity.type === 'RUN' ? (
+                        <Link href={`/run/${activity.data.id}`} className="font-semibold text-sm hover:text-[#FC4C02] transition-colors flex items-center gap-1.5">
+                          {getActivityName(activity.timestamp.getHours())}
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FC4C02]/10 text-[#FC4C02]">View Path</span>
+                        </Link>
+                      ) : (
+                        <p className="font-semibold text-sm">Territory Captured</p>
+                      )}
                       <p className="text-xs text-[var(--color-foreground)]/60">{formatRelativeTime(activity.timestamp)}</p>
                     </div>
                   </div>

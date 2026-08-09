@@ -15,6 +15,21 @@ export interface RunEndResult {
   territoriesCaptured: number;
 }
 
+export interface RunLocation {
+  id: string;
+  userId: string;
+  runId: string | null;
+  latitude: number;
+  longitude: number;
+  speed: number;
+  timestamp: string;
+}
+
+export interface RunDetailItem extends RunHistoryItem {
+  averageSpeed: number;
+  locations: RunLocation[];
+}
+
 export interface RunHistoryItem {
   id: string;
   userId: string;
@@ -52,5 +67,10 @@ export const runService = {
   getHistory: async (page = 1, limit = 10): Promise<RunHistoryItem[]> => {
     const response = await apiClient.get<RunHistoryResponse>(`/runs/history?page=${page}&limit=${limit}`);
     return response.data?.data?.runs || [];
+  },
+
+  getRunDetails: async (runId: string): Promise<RunDetailItem> => {
+    const response = await apiClient.get<{ success: boolean; data: RunDetailItem }>(`/runs/${runId}`);
+    return response.data.data;
   },
 };

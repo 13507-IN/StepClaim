@@ -9,10 +9,13 @@ const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapCo
 const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
 const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false });
 const Circle = dynamic(() => import('react-leaflet').then(mod => mod.Circle), { ssr: false });
+const CircleMarker = dynamic(() => import('react-leaflet').then(mod => mod.CircleMarker), { ssr: false });
 const Polygon = dynamic(() => import('react-leaflet').then(mod => mod.Polygon), { ssr: false });
+const Polyline = dynamic(() => import('react-leaflet').then(mod => mod.Polyline), { ssr: false });
 const Tooltip = dynamic(() => import('react-leaflet').then(mod => mod.Tooltip), { ssr: false });
 
 import { cellToBoundary } from 'h3-js';
+import { calculateDistance } from '@/lib/utils';
 
 interface DynamicMapProps {
   center: [number, number];
@@ -20,9 +23,17 @@ interface DynamicMapProps {
   routePath?: [number, number][];
   username?: string;
   capturedTerritories?: string[];
+  trackColor?: string;
 }
 
-export function DynamicMap({ center, interactive = true, routePath = [], username, capturedTerritories = [] }: DynamicMapProps) {
+export function DynamicMap({ 
+  center, 
+  interactive = true, 
+  routePath = [], 
+  username, 
+  capturedTerritories = [],
+  trackColor = '#FC4C02' // Strava signature orange
+}: DynamicMapProps) {
   // Fix Leaflet icons issue in Next.js
   useEffect(() => {
     (async function init() {
@@ -36,11 +47,26 @@ export function DynamicMap({ center, interactive = true, routePath = [], usernam
     })();
   }, []);
 
-  // Component to handle map re-centering
-  const MapRecenter = ({ center }: { center: [number, number] }) => {
-    const map = import('react-leaflet').then(mod => mod.useMap) as any;
-    return null;
-  };
+  // Compute 1km split markers along routePath
+  const splits: { position: [number, number]; km: number }[] = [];
+  if (routePath.length > 1) {
+    let accumulatedDist = 0;
+    let nextMilestone = 1.0; // 1 km
+    for (let i = 1; i < routePath.length; i++) {
+      const prev = routePath[i - 1];
+      const curr = routePath[i];
+      const dist = calculateDistance(prev[0], prev[1], curr[0], curr[1]);
+      accumulatedDist += dist;
+
+      if (accumulatedDist >= nextMilestone) {
+        splits.push({ position: curr, km: Math.floor(nextMilestone) });
+        nextMilestone += 1.0;
+      }
+    }
+  }
+
+  const startPoint = routePath.length > 0 ? routePath[0] : null;
+  const endPoint = routePath.length > 1 ? routePath[routePath.length - 1] : null;
 
   return (
     <div className="w-full h-full relative rounded-xl overflow-hidden shadow-sm border border-[var(--color-border)]">
@@ -59,10 +85,9 @@ export function DynamicMap({ center, interactive = true, routePath = [], usernam
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         />
 
-        {/* Render previously captured territories from H3 indices */}
+        {/* Render captured territories from H3 indices */}
         {capturedTerritories.map((gridId) => {
           try {
-            // cellToBoundary returns [lat, lng][] for the hexagon vertices
             const boundary = cellToBoundary(gridId);
             return (
               <Polygon 
@@ -70,54 +95,87 @@ export function DynamicMap({ center, interactive = true, routePath = [], usernam
                 positions={boundary} 
                 pathOptions={{ 
                   color: 'var(--color-primary)', 
-                  weight: 2, 
+                  weight: 1.5, 
                   fillColor: 'var(--color-primary)', 
-                  fillOpacity: 0.15,
-                  opacity: 0.5
+                  fillOpacity: 0.18,
+                  opacity: 0.6
                 }}
               />
             );
           } catch (e) {
-            return null; // Ignore invalid H3 indices
+            return null;
           }
         })}
 
-        {/* Draw the user's claimed territory as a Polygon */}
-        {routePath.length > 2 && (
-          <Polygon 
+        {/* Strava-style Glow Polyline Background */}
+        {routePath.length >= 2 && (
+          <Polyline 
             positions={routePath} 
             pathOptions={{ 
-              color: 'var(--color-primary)', 
-              weight: 3, 
-              dashArray: '10, 10', // Dotted line
-              fillColor: 'var(--color-primary)', 
-              fillOpacity: 0.2 
-            }}
+              color: trackColor, 
+              weight: 8, 
+              opacity: 0.3,
+              lineCap: 'round',
+              lineJoin: 'round'
+            }} 
+          />
+        )}
+
+        {/* Strava-style Main Track Polyline */}
+        {routePath.length >= 2 && (
+          <Polyline 
+            positions={routePath} 
+            pathOptions={{ 
+              color: trackColor, 
+              weight: 4.5, 
+              opacity: 0.95,
+              lineCap: 'round',
+              lineJoin: 'round'
+            }} 
           >
             {username && (
-              <Tooltip permanent direction="center" className="custom-map-tooltip">
-                {username}'s Territory
+              <Tooltip permanent direction="top" className="custom-map-tooltip">
+                {username}'s Route
               </Tooltip>
             )}
-          </Polygon>
+          </Polyline>
         )}
 
-        {/* Fallback to Polyline if less than 3 points (cannot form a polygon yet) */}
-        {routePath.length === 2 && (
-           <Polygon 
-             positions={routePath} 
-             pathOptions={{ color: 'var(--color-primary)', weight: 3, dashArray: '10, 10' }} 
-           />
+        {/* Start Point Marker (Green Flag / Pin) */}
+        {startPoint && (
+          <CircleMarker 
+            center={startPoint} 
+            radius={7} 
+            pathOptions={{ fillColor: '#22c55e', color: '#ffffff', weight: 2, fillOpacity: 1 }}
+          >
+            <Tooltip permanent direction="bottom" offset={[0, 6]}>
+              Start
+            </Tooltip>
+          </CircleMarker>
         )}
 
-        {/* User Location Marker */}
+        {/* Kilometer Split Badges */}
+        {splits.map((split, idx) => (
+          <CircleMarker 
+            key={`split-${idx}`}
+            center={split.position} 
+            radius={8} 
+            pathOptions={{ fillColor: '#000000', color: '#ffffff', weight: 2, fillOpacity: 0.9 }}
+          >
+            <Tooltip permanent direction="center" interactive={false}>
+              <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#ffffff' }}>{split.km}k</span>
+            </Tooltip>
+          </CircleMarker>
+        ))}
+
+        {/* User Location Marker & Pulse Indicator */}
         <Marker position={center} />
         
         {/* User Location accuracy circle indicator */}
         <Circle 
           center={center} 
-          pathOptions={{ fillColor: 'var(--color-primary)', color: 'var(--color-primary)', weight: 1 }} 
-          radius={50} 
+          pathOptions={{ fillColor: trackColor, color: trackColor, weight: 1, fillOpacity: 0.15 }} 
+          radius={30} 
         />
       </MapContainer>
     </div>
@@ -133,3 +191,4 @@ function MapUpdater({ center }: { center: [number, number] }) {
   }, [center, map]);
   return null;
 }
+

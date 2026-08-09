@@ -8,6 +8,7 @@ import { Play, Square, Pause, MapPin, Gauge, Timer, Flame, Navigation } from 'lu
 import { useGPS } from '@/hooks/useGPS';
 import { calculateDistance } from '@/lib/utils';
 
+import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/store/useUserStore';
 import { useSocket } from '@/hooks/useSocket';
 import { runService } from '@/services/run.api';
@@ -16,6 +17,7 @@ import { authService } from '@/services/auth.api';
 type ActivityType = 'WALKING' | 'RUNNING' | 'CYCLING';
 
 export default function LiveRunPage() {
+  const router = useRouter();
   const user = useUserStore((state) => state.user);
   const setUser = useUserStore((state) => state.setUser);
   
@@ -158,6 +160,7 @@ export default function LiveRunPage() {
 
   const handleStopRun = async () => {
     if (!activeRunId) return;
+    const finishedRunId = activeRunId;
     try {
       setIsProcessing(true);
       setIsRunning(false);
@@ -177,6 +180,8 @@ export default function LiveRunPage() {
       }
       
       setActiveRunId(null);
+      // Redirect immediately to the recorded path visualizer /run/[id] page
+      router.push(`/run/${finishedRunId}`);
     } catch (err) {
       console.error('Failed to end run:', err);
     } finally {

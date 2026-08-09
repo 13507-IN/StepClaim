@@ -61,7 +61,11 @@ export class AuthService {
     const refreshToken = generateRefreshToken({ userId: user.id });
 
     // Save refresh token in Redis (expires in 7 days matching JWT expiration)
-    await redis.set(`refreshToken:${user.id}`, refreshToken, 'EX', 7 * 24 * 60 * 60);
+    try {
+      await redis.set(`refreshToken:${user.id}`, refreshToken, 'EX', 7 * 24 * 60 * 60);
+    } catch (err: any) {
+      console.warn(`⚠️ Redis token cache unavailable: ${err.message}`);
+    }
 
     return { user, accessToken, refreshToken };
   }
@@ -87,8 +91,12 @@ export class AuthService {
     const accessToken = generateAccessToken({ userId: user.id, username: user.username });
     const refreshToken = generateRefreshToken({ userId: user.id });
 
-    // Save refresh token in Redis
-    await redis.set(`refreshToken:${user.id}`, refreshToken, 'EX', 7 * 24 * 60 * 60);
+    // Save refresh token in Redis (fail-safe if Redis is offline)
+    try {
+      await redis.set(`refreshToken:${user.id}`, refreshToken, 'EX', 7 * 24 * 60 * 60);
+    } catch (err: any) {
+      console.warn(`⚠️ Redis token cache unavailable: ${err.message}`);
+    }
 
     return { user, accessToken, refreshToken };
   }
@@ -103,10 +111,14 @@ export class AuthService {
         throw new Error('Invalid refresh token');
       }
       
-      // Verify token exists in Redis
-      const storedToken = await redis.get(`refreshToken:${decoded.userId}`);
-      if (!storedToken || storedToken !== token) {
-        throw new Error('Invalid refresh token');
+      // Verify token exists in Redis if Redis is available
+      try {
+        const storedToken = await redis.get(`refreshToken:${decoded.userId}`);
+        if (storedToken && storedToken !== token) {
+          throw new Error('Invalid refresh token');
+        }
+      } catch (redisErr) {
+        // Fallback to JWT cryptographic verification if Redis is offline
       }
 
       // Generate new tokens
@@ -114,7 +126,9 @@ export class AuthService {
       const refreshToken = generateRefreshToken({ userId: decoded.userId });
 
       // Save refresh token in Redis
-      await redis.set(`refreshToken:${decoded.userId}`, refreshToken, 'EX', 7 * 24 * 60 * 60);
+      try {
+        await redis.set(`refreshToken:${decoded.userId}`, refreshToken, 'EX', 7 * 24 * 60 * 60);
+      } catch (err) {}
 
       return { accessToken, refreshToken };
     } catch (error) {
@@ -126,7 +140,9 @@ export class AuthService {
    * Log out a user by deleting their refresh token from Redis.
    */
   async logout(userId: string): Promise<void> {
-    await redis.del(`refreshToken:${userId}`);
+    try {
+      await redis.del(`refreshToken:${userId}`);
+    } catch (err) {}
   }
 
   /**

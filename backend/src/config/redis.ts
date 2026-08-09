@@ -6,14 +6,14 @@ import { env } from './env.js';
  * Handles connection lifecycle events with appropriate logging.
  */
 export const redis = new Redis(env.REDIS_URL, {
-  maxRetriesPerRequest: 3,
+  maxRetriesPerRequest: 1,
+  enableOfflineQueue: false, // Prevents queuing commands when disconnected so operations fail fast and fallback
   retryStrategy(times: number): number | null {
-    if (times > 10) {
-      console.error('❌ Redis: max retries reached, giving up');
+    if (times > 5) {
+      console.warn('⚠️ Redis: max retries reached, running in fallback mode');
       return null;
     }
-    // Exponential backoff: 200ms, 400ms, 800ms, ... capped at 5s
-    return Math.min(times * 200, 5000);
+    return Math.min(times * 500, 3000);
   },
   lazyConnect: false,
 });

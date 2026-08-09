@@ -15,7 +15,10 @@ const envSchema = z.object({
   DIRECT_URL: z.string().url().optional(),
 
   // Redis
-  REDIS_URL: z.string().url(),
+  REDIS_URL: z.string().min(1).refine(
+    (val) => val.startsWith('redis://') || val.startsWith('rediss://'),
+    { message: 'REDIS_URL must be a valid redis:// or rediss:// URL' }
+  ),
 
   // JWT
   JWT_ACCESS_SECRET: z.string().min(16),

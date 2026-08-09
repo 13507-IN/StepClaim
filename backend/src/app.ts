@@ -6,11 +6,20 @@ import { env } from './config/env';
 import { apiRoutes } from './routes';
 import { initSocketServer } from './socket';
 import { disconnectRedis } from './config/redis';
+import { prisma } from './config/database';
 
 /**
  * Main application bootstrapping.
  */
 async function bootstrap(): Promise<void> {
+  // Test Database Connection on startup
+  try {
+    await prisma.$connect();
+    console.log('✅ PostgreSQL (Supabase) Database: connected successfully');
+  } catch (dbError: any) {
+    console.error('❌ PostgreSQL Database connection error:', dbError.message);
+  }
+
   const fastify = Fastify({
     logger: {
       transport:

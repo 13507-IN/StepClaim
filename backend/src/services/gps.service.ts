@@ -22,6 +22,7 @@ export class GpsService {
     longitude: number,
     speed: number,
     activityType: 'WALKING' | 'RUNNING' | 'CYCLING',
+    timestampInput?: Date | string | number,
   ): Promise<{
     processed: boolean;
     reason?: string;
@@ -66,10 +67,12 @@ export class GpsService {
       }
     }
 
+    const pointTimestamp = timestampInput ? new Date(timestampInput) : new Date();
+
     const currentPoint = {
       latitude,
       longitude,
-      timestamp: new Date(),
+      timestamp: pointTimestamp,
     };
 
     // 2. Validate coordinates through Anti-Cheat Service

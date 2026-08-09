@@ -44,12 +44,12 @@ export class RunService {
     // Re-read the run right before final calculation so late trackpoints are included.
     const finalRun = await this.runRepo.findById(runId);
     const locations = finalRun?.locations || [];
-    let distance = 0;
+    let distanceMeters = 0;
     
     if (locations.length >= 2) {
       const { haversineDistance } = await import('../utils/haversine.js');
       for (let i = 1; i < locations.length; i++) {
-        distance += haversineDistance(
+        distanceMeters += haversineDistance(
           locations[i - 1].latitude,
           locations[i - 1].longitude,
           locations[i].latitude,
@@ -57,35 +57,36 @@ export class RunService {
         );
       }
     } else {
-      distance = finalRun?.distance ?? run.distance;
+      distanceMeters = (finalRun?.distance ?? run.distance) * 1000;
     }
 
-    const averageSpeed = duration > 0 ? distance / duration : 0.0; // m/s
+    const distanceKm = Number((distanceMeters / 1000).toFixed(3)); // Convert meters to km
+    const averageSpeed = duration > 0 ? distanceMeters / duration : 0.0; // m/s
 
     // Calculate XP: 100m = rate XP (from constants)
     const rate = XP_RATES[activityType];
-    const xpGained = Math.round((distance / 100) * rate);
+    const xpGained = Math.round((distanceMeters / 100) * rate);
 
-    // Save completed run in DB
+    // Save completed run in DB with distance in KM
     const completedRun = await this.runRepo.complete(runId, {
       endTime,
-      distance,
+      distance: distanceKm,
       duration,
       averageSpeed,
       xpGained,
     });
 
-    // Update user cumulative statistics
+    // Update user cumulative statistics in KM
     const user = await this.userRepo.findById(userId);
     if (!user) throw new Error('User not found');
 
-    const updatedTotalDistance = user.totalDistance + distance;
+    const updatedTotalDistance = user.totalDistance + distanceKm;
     await this.userRepo.updateStats(userId, {
       totalDistance: updatedTotalDistance,
     });
 
     // Award XP to user and log activity
-    const awardResult = await this.gamificationService.awardXP(userId, xpGained, 'RUN_COMPLETED', distance);
+    const awardResult = await this.gamificationService.awardXP(userId, xpGained, 'RUN_COMPLETED', distanceKm);
 
     // Trigger daily streak check (requires 1km daily movement)
     const streakMilestone = await this.gamificationService.checkDailyStreak(userId);
@@ -125,21 +126,22 @@ export class RunService {
         const locations = run.locations;
         const lastLoc = locations[locations.length - 2];
         const { haversineDistance } = await import('../utils/haversine.js');
-        const increment = haversineDistance(
+        const incrementMeters = haversineDistance(
           lastLoc.latitude,
           lastLoc.longitude,
           latitude,
           longitude,
         );
+        const incrementKm = incrementMeters / 1000;
 
-        const newDistance = run.distance + increment;
+        const newDistanceKm = Number((run.distance + incrementKm).toFixed(3));
         const duration = Math.max(Math.round((timestamp.getTime() - run.startTime.getTime()) / 1000), 1);
-        const averageSpeed = newDistance / duration;
+        const averageSpeed = duration > 0 ? (newDistanceKm * 1000) / duration : 0; // m/s
 
         await (await import('../config/database.js')).prisma.run.update({
           where: { id: runId },
           data: {
-            distance: newDistance,
+            distance: newDistanceKm,
             duration,
             averageSpeed,
           },

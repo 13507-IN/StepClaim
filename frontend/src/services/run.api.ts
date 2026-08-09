@@ -73,4 +73,15 @@ export const runService = {
     const response = await apiClient.get<{ success: boolean; data: RunDetailItem }>(`/runs/${runId}`);
     return response.data.data;
   },
+
+  sendLocation: async (payload: {
+    latitude: number;
+    longitude: number;
+    speed?: number;
+    activityType?: 'WALKING' | 'RUNNING' | 'CYCLING';
+    runId?: string | null;
+  }) => {
+    const response = await apiClient.post('/runs/location', payload);
+    return response.data.data;
+  },
 };

@@ -100,7 +100,24 @@ export default function LiveRunPage() {
         return;
       }
 
-      if (isRunning && !isPaused && activeRunId && socket) {
+      if (isRunning && !isPaused && activeRunId) {
+        const speedKmH = location.speed ?? 0;
+        const locationPayload = {
+          latitude: currentPos[0],
+          longitude: currentPos[1],
+          speed: Math.max(0, speedKmH),
+          activityType: activityType,
+          runId: activeRunId
+        };
+
+        const sendUpdate = () => {
+          if (socket && isConnected) {
+            socket.emit('LOCATION_UPDATED', locationPayload);
+          } else {
+            runService.sendLocation(locationPayload).catch(console.error);
+          }
+        };
+
         if (lastLocationRef.current) {
           const distDelta = calculateDistance(
             lastLocationRef.current[0], lastLocationRef.current[1],
@@ -112,25 +129,17 @@ export default function LiveRunPage() {
             setRoutePath((prev) => [...prev, currentPos]);
             setDistance((prev) => prev + distDelta);
             lastLocationRef.current = currentPos;
-
-            // Stream real-time location to backend Anti-Cheat & Territory engine
-            const speedKmH = location.speed ?? (distDelta / (1 / 3600)); // fall back to delta speed
-            socket.emit('LOCATION_UPDATED', {
-              latitude: currentPos[0],
-              longitude: currentPos[1],
-              speed: Math.max(0, speedKmH),
-              activityType: activityType,
-              runId: activeRunId
-            });
+            sendUpdate();
           }
         } else {
           // First point of the run
           setRoutePath([currentPos]);
           lastLocationRef.current = currentPos;
+          sendUpdate();
         }
       }
     }
-  }, [location, isRunning, isPaused, activeRunId, socket, activityType]);
+  }, [location, isRunning, isPaused, activeRunId, socket, isConnected, activityType]);
 
   const handleStartRun = async () => {
     try {

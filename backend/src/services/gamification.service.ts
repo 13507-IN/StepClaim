@@ -151,9 +151,10 @@ export class GamificationService {
       },
     });
 
-    const distanceToday = runsToday.reduce((sum: number, run: any) => sum + run.distance, 0);
+    const distanceTodayKm = runsToday.reduce((sum: number, run: any) => sum + run.distance, 0);
+    const distanceTodayMeters = distanceTodayKm * 1000;
 
-    if (distanceToday >= STREAK.MIN_DAILY_DISTANCE) {
+    if (distanceTodayMeters >= STREAK.MIN_DAILY_DISTANCE) {
       // Already completed today's streak requirements
       // Check if streak was already increased today
       const streakIncrementedToday = await prisma.activity.findFirst({
@@ -172,10 +173,11 @@ export class GamificationService {
             startTime: { gte: yesterdayStart, lt: todayStart },
           },
         });
-        const distanceYesterday = runsYesterday.reduce((sum: number, run: any) => sum + run.distance, 0);
+        const distanceYesterdayKm = runsYesterday.reduce((sum: number, run: any) => sum + run.distance, 0);
+        const distanceYesterdayMeters = distanceYesterdayKm * 1000;
 
         let nextStreak = user.streak;
-        if (distanceYesterday >= STREAK.MIN_DAILY_DISTANCE) {
+        if (distanceYesterdayMeters >= STREAK.MIN_DAILY_DISTANCE) {
           nextStreak += 1;
         } else {
           nextStreak = 1;

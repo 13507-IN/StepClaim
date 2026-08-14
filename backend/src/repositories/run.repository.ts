@@ -58,7 +58,7 @@ export class RunRepository {
     speed: number,
     timestamp: Date,
   ): Promise<UserLocation> {
-    return prisma.userLocation.create({
+    const location = await prisma.userLocation.create({
       data: {
         userId,
         runId,
@@ -68,6 +68,17 @@ export class RunRepository {
         timestamp,
       },
     });
+
+    // Populate PostGIS geography column (fail-safe: don't crash if PostGIS is unavailable)
+    try {
+      const { PostgisService } = await import('../services/postgis.service.js');
+      const postgis = new PostgisService();
+      await postgis.setLocationGeog(location.id, latitude, longitude);
+    } catch (err) {
+      // PostGIS not available — geog stays NULL, app still works with lat/lng
+    }
+
+    return location;
   }
 
   /**

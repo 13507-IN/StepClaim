@@ -72,13 +72,26 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent className="p-6">
               <div className="flex flex-wrap gap-4">
-                {/* Mock Badges */}
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex flex-col items-center gap-3 p-5 rounded-2xl border border-yellow-500/20 bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 hover:scale-105 transition-transform shadow-lg shadow-black/20 cursor-pointer">
-                    <Trophy className="h-10 w-10 text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.4)]" />
-                    <span className="text-sm font-bold text-yellow-100">100km Club</span>
-                  </div>
-                ))}
+                {(() => {
+                  const badges = [];
+                  if ((user.totalDistance || 0) >= 10) badges.push("10km Club");
+                  if ((user.totalDistance || 0) >= 50) badges.push("50km Club");
+                  if ((user.totalDistance || 0) >= 100) badges.push("100km Explorer");
+                  if ((user.territoryCount || 0) >= 1) badges.push("Territory Rookie");
+                  if ((user.territoryCount || 0) >= 10) badges.push("Hex Conqueror");
+                  if ((user.streak || 0) >= 3) badges.push("Streak Starter");
+                  if ((user.streak || 0) >= 7) badges.push("Consistent Runner");
+                  if ((user.level || 0) >= 5) badges.push("Veteran (Lvl 5)");
+                  
+                  if (badges.length === 0) badges.push("New Explorer");
+
+                  return badges.map((badge, i) => (
+                    <div key={i} className="flex flex-col items-center justify-center gap-3 p-5 rounded-2xl border border-yellow-500/20 bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 hover:scale-105 transition-transform shadow-lg shadow-black/20 cursor-pointer w-32">
+                      <Trophy className="h-10 w-10 text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.4)]" />
+                      <span className="text-sm font-bold text-yellow-100 text-center">{badge}</span>
+                    </div>
+                  ));
+                })()}
               </div>
             </CardContent>
           </Card>

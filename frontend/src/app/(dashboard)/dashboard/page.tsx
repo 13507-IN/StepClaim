@@ -74,16 +74,16 @@ export default function DashboardOverview() {
   };
 
   return (
-    <div className="p-6 space-y-8 max-w-6xl mx-auto">
+    <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto relative z-10">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
-          <p className="text-[var(--color-foreground)]/60">Welcome back, {user.username}! Here's how you're doing.</p>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70">Overview</h1>
+          <p className="text-[var(--color-foreground)]/60 text-lg">Welcome back, {user.username}! Here's how you're doing.</p>
         </div>
         <Link href="/run">
-          <Button size="lg" className="rounded-full shadow-lg hover:scale-105 transition-transform">
-            <Activity className="h-5 w-5 mr-2" />
+          <Button size="lg" className="rounded-xl h-14 px-8 shadow-[0_0_40px_rgba(var(--color-primary-rgb),0.3)] hover:shadow-[0_0_60px_rgba(var(--color-primary-rgb),0.5)] transition-all hover:scale-105 text-lg">
+            <Activity className="h-5 w-5 mr-3" />
             Start Run
           </Button>
         </Link>
@@ -91,99 +91,110 @@ export default function DashboardOverview() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="glass-panel border-l-4 border-l-[var(--color-primary)]">
+        <Card className="bg-white/5 backdrop-blur-xl border-white/10 border-l-4 border-l-[var(--color-primary)] hover:bg-white/10 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-[var(--color-foreground)]/70">Total Distance</CardTitle>
-            <Route className="h-4 w-4 text-[var(--color-primary)]" />
+            <CardTitle className="text-sm font-semibold text-[var(--color-foreground)]/70 uppercase tracking-wider">Total Distance</CardTitle>
+            <div className="p-2 bg-[var(--color-primary)]/10 rounded-lg">
+              <Route className="h-5 w-5 text-[var(--color-primary)]" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{user.totalDistance?.toFixed(2) || '0.00'} km</div>
+            <div className="text-4xl font-black mt-2">{user.totalDistance?.toFixed(2) || '0.00'} <span className="text-2xl text-[var(--color-foreground)]/50">km</span></div>
           </CardContent>
         </Card>
 
-        <Card className="glass-panel border-l-4 border-l-[var(--color-accent)]">
+        <Card className="bg-white/5 backdrop-blur-xl border-white/10 border-l-4 border-l-[var(--color-accent)] hover:bg-white/10 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-[var(--color-foreground)]/70">Territories</CardTitle>
-            <Hexagon className="h-4 w-4 text-[var(--color-accent)]" />
+            <CardTitle className="text-sm font-semibold text-[var(--color-foreground)]/70 uppercase tracking-wider">Territories</CardTitle>
+            <div className="p-2 bg-[var(--color-accent)]/10 rounded-lg">
+              <Hexagon className="h-5 w-5 text-[var(--color-accent)]" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{user.territoryCount || 0}</div>
-            <p className="text-xs text-[var(--color-foreground)]/60 mt-1">Currently controlling</p>
+            <div className="text-4xl font-black mt-2">{user.territoryCount || 0}</div>
+            <p className="text-xs text-[var(--color-foreground)]/60 mt-2 font-medium">Currently controlling</p>
           </CardContent>
         </Card>
 
-        <Card className="glass-panel border-l-4 border-l-orange-500">
+        <Card className="bg-white/5 backdrop-blur-xl border-white/10 border-l-4 border-l-orange-500 hover:bg-white/10 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-[var(--color-foreground)]/70">Active Streak</CardTitle>
-            <Flame className="h-4 w-4 text-orange-500" />
+            <CardTitle className="text-sm font-semibold text-[var(--color-foreground)]/70 uppercase tracking-wider">Active Streak</CardTitle>
+            <div className="p-2 bg-orange-500/10 rounded-lg">
+              <Flame className="h-5 w-5 text-orange-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{user.streak || 0} days</div>
-            <p className="text-xs text-[var(--color-foreground)]/60 mt-1">Keep it up!</p>
+            <div className="text-4xl font-black mt-2">{user.streak || 0} <span className="text-2xl text-[var(--color-foreground)]/50">days</span></div>
+            <p className="text-xs text-[var(--color-foreground)]/60 mt-2 font-medium">Keep it up!</p>
           </CardContent>
         </Card>
 
-        <Card className="glass-panel border-l-4 border-l-yellow-500">
+        <Card className="bg-white/5 backdrop-blur-xl border-white/10 border-l-4 border-l-yellow-500 hover:bg-white/10 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-[var(--color-foreground)]/70">Level</CardTitle>
-            <Trophy className="h-4 w-4 text-yellow-500" />
+            <CardTitle className="text-sm font-semibold text-[var(--color-foreground)]/70 uppercase tracking-wider">Level</CardTitle>
+            <div className="p-2 bg-yellow-500/10 rounded-lg">
+              <Trophy className="h-5 w-5 text-yellow-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{user.level || 1}</div>
-            <div className="flex items-center gap-2 mt-1">
-              <div className="h-2 flex-1 bg-[var(--color-surface-muted)] rounded-full overflow-hidden">
-                <div className="h-full bg-yellow-500" style={{ width: `${xpProgress}%` }} />
+            <div className="text-4xl font-black mt-2">{user.level || 1}</div>
+            <div className="flex items-center gap-3 mt-3">
+              <div className="h-2 flex-1 bg-black/40 rounded-full overflow-hidden shadow-inner">
+                <div className="h-full bg-gradient-to-r from-yellow-600 to-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.5)]" style={{ width: `${xpProgress}%` }} />
               </div>
-              <span className="text-xs text-[var(--color-foreground)]/60">{Math.floor(xpProgress)}%</span>
+              <span className="text-xs font-bold text-[var(--color-foreground)]/70">{Math.floor(xpProgress)}%</span>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Recent Activity */}
+      {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="glass-panel">
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+        <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+          <CardHeader className="border-b border-white/5 pb-4">
+            <CardTitle className="text-xl font-bold">Recent Activity</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="p-0">
             {loading ? (
-              <div className="text-sm text-[var(--color-foreground)]/60">Loading activity...</div>
+              <div className="p-6 text-sm text-[var(--color-foreground)]/60">Loading activity...</div>
             ) : activities.length === 0 ? (
-              <div className="text-sm text-[var(--color-foreground)]/60">No recent activity yet. Start running!</div>
+              <div className="p-6 text-sm text-[var(--color-foreground)]/60">No recent activity yet. Start running!</div>
             ) : (
-              activities.map((activity, i) => (
-                <div key={i} className="flex items-center justify-between border-b border-[var(--color-border)] pb-4 last:border-0 last:pb-0 hover:bg-white/5 p-2 rounded-xl transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center ${activity.type === 'RUN' ? 'bg-[#FC4C02]/10' : 'bg-[var(--color-accent)]/10'}`}>
-                      {activity.type === 'RUN' ? (
-                        <Route className="h-5 w-5 text-[#FC4C02]" />
-                      ) : (
-                        <Hexagon className="h-5 w-5 text-[var(--color-accent)]" />
-                      )}
+              <div className="divide-y divide-white/5">
+                {activities.map((activity, i) => (
+                  <div key={i} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className={`h-12 w-12 rounded-xl flex items-center justify-center shadow-lg ${activity.type === 'RUN' ? 'bg-[#FC4C02]/20 border border-[#FC4C02]/30' : 'bg-[var(--color-accent)]/20 border border-[var(--color-accent)]/30'}`}>
+                        {activity.type === 'RUN' ? (
+                          <Route className="h-6 w-6 text-[#FC4C02]" />
+                        ) : (
+                          <Hexagon className="h-6 w-6 text-[var(--color-accent)]" />
+                        )}
+                      </div>
+                      <div>
+                        {activity.type === 'RUN' ? (
+                          <Link href={`/run/${activity.data.id}`} className="font-bold text-base hover:text-[#FC4C02] transition-colors flex items-center gap-2">
+                            {getActivityName(activity.timestamp.getHours())}
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#FC4C02]/10 text-[#FC4C02] uppercase tracking-wider font-semibold border border-[#FC4C02]/20">View Path</span>
+                          </Link>
+                        ) : (
+                          <p className="font-bold text-base">Territory Captured</p>
+                        )}
+                        <p className="text-sm text-[var(--color-foreground)]/50 font-medium mt-0.5">{formatRelativeTime(activity.timestamp)}</p>
+                      </div>
                     </div>
-                    <div>
-                      {activity.type === 'RUN' ? (
-                        <Link href={`/run/${activity.data.id}`} className="font-semibold text-sm hover:text-[#FC4C02] transition-colors flex items-center gap-1.5">
-                          {getActivityName(activity.timestamp.getHours())}
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FC4C02]/10 text-[#FC4C02]">View Path</span>
-                        </Link>
-                      ) : (
-                        <p className="font-semibold text-sm">Territory Captured</p>
-                      )}
-                      <p className="text-xs text-[var(--color-foreground)]/60">{formatRelativeTime(activity.timestamp)}</p>
+                    <div className="text-right">
+                      <p className="font-black text-lg">
+                        {activity.type === 'RUN' ? `${activity.data.distance.toFixed(2)} km` : `Grid Capture`}
+                      </p>
+                      <p className="text-sm text-[var(--color-success)] font-semibold mt-0.5">
+                        +{activity.type === 'RUN' ? activity.data.xpEarned : activity.data.capturePoints} XP
+                      </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold text-sm">
-                      {activity.type === 'RUN' ? `${activity.data.distance.toFixed(2)} km` : `Grid Capture`}
-                    </p>
-                    <p className="text-xs text-[var(--color-success)]">
-                      +{activity.type === 'RUN' ? activity.data.xpEarned : activity.data.capturePoints} XP
-                    </p>
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </CardContent>
         </Card>

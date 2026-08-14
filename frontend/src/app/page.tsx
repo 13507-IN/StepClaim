@@ -8,9 +8,18 @@ import { Map, Zap, Trophy, ShieldAlert } from 'lucide-react';
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-foreground)] overflow-hidden relative">
-      {/* Background Ambience */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[var(--color-primary)]/10 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-[var(--color-accent)]/10 blur-[120px] rounded-full pointer-events-none" />
+      {/* Background Image & Ambience */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <img 
+          src="/background.jpg" 
+          alt="Background" 
+          className="w-full h-full object-cover opacity-30 mix-blend-luminosity"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-[var(--color-background)]/80 to-[var(--color-background)]" />
+      </div>
+
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[var(--color-primary)]/10 blur-[120px] rounded-full pointer-events-none z-0" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-[var(--color-accent)]/10 blur-[120px] rounded-full pointer-events-none z-0" />
 
       {/* Navigation */}
       <nav className="relative z-10 flex items-center justify-between p-6 max-w-7xl mx-auto">

@@ -124,6 +124,15 @@ export class TerritoryService {
         return updatedTerritory;
       });
 
+      // Set PostGIS center_geog on the territory (fail-safe)
+      try {
+        const { PostgisService } = await import('./postgis.service.js');
+        const postgis = new PostgisService();
+        await postgis.setTerritoryGeog(territory.id, latitude, longitude);
+      } catch {
+        // PostGIS not available — territory still works via H3 gridId
+      }
+
       // Set Redis Cooldown Lock (30s)
       await redis.set(cooldownKey, 'locked', 'EX', ANTI_CHEAT.TERRITORY_CAPTURE_COOLDOWN);
 
@@ -155,13 +164,55 @@ export class TerritoryService {
   }
 
   /**
-   * Retrieve nearby territories within a range (~2km radius ring) around coordinates.
+   * Retrieve nearby territories within a ~2km radius around coordinates.
+   * Primary: PostGIS ST_DWithin spatial index query.
+   * Fallback: H3 gridDisk ring computation (if PostGIS is unavailable or no center_geog data).
    */
   async getNearbyTerritories(
     latitude: number,
     longitude: number,
   ): Promise<{ gridId: string; boundary: [number, number][]; owner: any; captured: boolean }[]> {
     try {
+      // Try PostGIS spatial query first (much faster with GIST index)
+      try {
+        const { PostgisService } = await import('./postgis.service.js');
+        const postgis = new PostgisService();
+        const spatialResults = await postgis.findTerritoriesWithinRadius(latitude, longitude, 2000);
+
+        if (spatialResults.length > 0) {
+          // Build grid results from PostGIS spatial data
+          const centerCell = this.getGridIdFromLatLng(latitude, longitude);
+          const surroundingGrids: string[] = gridDisk(centerCell, 8);
+
+          // Merge PostGIS captured territories with surrounding hex grid
+          const capturedMap = new Map<string, typeof spatialResults[0]>();
+          spatialResults.forEach((t) => capturedMap.set(t.grid_id, t));
+
+          const gridsResult = surroundingGrids.map((gId) => {
+            const capturedInfo = capturedMap.get(gId);
+            const boundary = this.getHexagonBoundary(gId);
+
+            return {
+              gridId: gId,
+              boundary,
+              captured: !!capturedInfo,
+              owner: capturedInfo
+                ? {
+                    id: capturedInfo.owner_id,
+                    username: capturedInfo.owner_username || 'Unknown',
+                    avatarUrl: capturedInfo.owner_avatar_url || null,
+                  }
+                : null,
+            };
+          });
+
+          return gridsResult;
+        }
+      } catch {
+        // PostGIS not available, fall through to H3 fallback
+      }
+
+      // Fallback: H3 gridDisk approach (original implementation)
       const centerCell = this.getGridIdFromLatLng(latitude, longitude);
 
       // Generate spatial hexagon disks covering roughly a 2km radius around the center (k=8 ring size)

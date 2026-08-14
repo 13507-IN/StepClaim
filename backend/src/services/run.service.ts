@@ -45,8 +45,19 @@ export class RunService {
     const finalRun = await this.runRepo.findById(runId);
     const locations = finalRun?.locations || [];
     let distanceMeters = 0;
-    
-    if (locations.length >= 2) {
+
+    // Primary: Use PostGIS ST_Length(ST_MakeLine) for geodesic distance (server-side, accurate)
+    try {
+      const { PostgisService } = await import('./postgis.service.js');
+      const postgis = new PostgisService();
+      distanceMeters = await postgis.calculateRouteDistance(runId);
+    } catch {
+      // Fallback: compute distance in JS with Haversine if PostGIS is unavailable
+      distanceMeters = 0;
+    }
+
+    // Fallback: if PostGIS returned 0 (no geog data), use JS Haversine
+    if (distanceMeters === 0 && locations.length >= 2) {
       const { haversineDistance } = await import('../utils/haversine.js');
       for (let i = 1; i < locations.length; i++) {
         distanceMeters += haversineDistance(
@@ -56,7 +67,7 @@ export class RunService {
           locations[i].longitude,
         );
       }
-    } else {
+    } else if (distanceMeters === 0) {
       distanceMeters = (finalRun?.distance ?? run.distance) * 1000;
     }
 

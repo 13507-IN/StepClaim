@@ -149,46 +149,45 @@ export default function DashboardOverview() {
       </div>
 
       {/* Recent Activity */}
-      {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+        <Card className="bg-white/5 backdrop-blur-xl border-white/10 shadow-xl shadow-black/20">
           <CardHeader className="border-b border-white/5 pb-4">
             <CardTitle className="text-xl font-bold">Recent Activity</CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="p-2">
             {loading ? (
               <div className="p-6 text-sm text-[var(--color-foreground)]/60">Loading activity...</div>
             ) : activities.length === 0 ? (
               <div className="p-6 text-sm text-[var(--color-foreground)]/60">No recent activity yet. Start running!</div>
             ) : (
-              <div className="divide-y divide-white/5">
+              <div className="space-y-1">
                 {activities.map((activity, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                  <div key={i} className="flex items-center justify-between p-4 hover:bg-white/10 transition-all rounded-xl border border-transparent hover:border-white/10 hover:shadow-lg group">
                     <div className="flex items-center gap-4">
-                      <div className={`h-12 w-12 rounded-xl flex items-center justify-center shadow-lg ${activity.type === 'RUN' ? 'bg-[#FC4C02]/20 border border-[#FC4C02]/30' : 'bg-[var(--color-accent)]/20 border border-[var(--color-accent)]/30'}`}>
+                      <div className={`h-12 w-12 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br ${activity.type === 'RUN' ? 'from-[#FC4C02]/30 to-[#FC4C02]/5 border border-[#FC4C02]/40' : 'from-[var(--color-accent)]/30 to-[var(--color-accent)]/5 border border-[var(--color-accent)]/40'}`}>
                         {activity.type === 'RUN' ? (
-                          <Route className="h-6 w-6 text-[#FC4C02]" />
+                          <Route className="h-6 w-6 text-[#FC4C02] drop-shadow-[0_0_8px_rgba(252,76,2,0.8)]" />
                         ) : (
-                          <Hexagon className="h-6 w-6 text-[var(--color-accent)]" />
+                          <Hexagon className="h-6 w-6 text-[var(--color-accent)] drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
                         )}
                       </div>
                       <div>
                         {activity.type === 'RUN' ? (
-                          <Link href={`/run/${activity.data.id}`} className="font-bold text-base hover:text-[#FC4C02] transition-colors flex items-center gap-2">
+                          <Link href={`/run/${activity.data.id}`} className="font-bold text-base text-white hover:text-[#FC4C02] transition-colors flex items-center gap-2">
                             {getActivityName(activity.timestamp.getHours())}
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#FC4C02]/10 text-[#FC4C02] uppercase tracking-wider font-semibold border border-[#FC4C02]/20">View Path</span>
+                            <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FC4C02]/20 text-[#FC4C02] uppercase tracking-widest font-black border border-[#FC4C02]/30 opacity-0 group-hover:opacity-100 transition-opacity">View Path</span>
                           </Link>
                         ) : (
-                          <p className="font-bold text-base">Territory Captured</p>
+                          <p className="font-bold text-base text-white">Territory Captured</p>
                         )}
                         <p className="text-sm text-[var(--color-foreground)]/50 font-medium mt-0.5">{formatRelativeTime(activity.timestamp)}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-black text-lg">
+                      <p className="font-black text-lg text-white">
                         {activity.type === 'RUN' ? `${activity.data.distance.toFixed(2)} km` : `Grid Capture`}
                       </p>
-                      <p className="text-sm text-[var(--color-success)] font-semibold mt-0.5">
+                      <p className="text-sm text-emerald-400 font-bold mt-0.5 drop-shadow-[0_0_5px_rgba(52,211,153,0.4)]">
                         +{activity.type === 'RUN' ? activity.data.xpEarned : activity.data.capturePoints} XP
                       </p>
                     </div>

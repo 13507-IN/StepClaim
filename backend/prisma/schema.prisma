@@ -1,11 +1,16 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
+// PostGIS extension (must be enabled in Supabase Dashboard first)
+// Dashboard → Database → Extensions → Search "postgis" → Toggle ON
+
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [postgis]
 }
 
 model User {
@@ -50,28 +55,32 @@ model Run {
 }
 
 model UserLocation {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  runId     String?  @map("run_id")
+  id        String                             @id @default(uuid())
+  userId    String                             @map("user_id")
+  runId     String?                            @map("run_id")
   latitude  Float
   longitude Float
-  speed     Float    @default(0.0)
-  timestamp DateTime @default(now())
-  run       Run?     @relation(fields: [runId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  speed     Float                              @default(0.0)
+  timestamp DateTime                           @default(now())
+  geog      Unsupported("geography(Point,4326)")?
+  run       Run?                               @relation(fields: [runId], references: [id])
+  user      User                               @relation(fields: [userId], references: [id])
 
+  @@index([geog], type: Gist)
   @@map("user_locations")
 }
 
 model Territory {
-  id            String   @id @default(uuid())
-  gridId        String   @unique @map("grid_id")
-  ownerId       String?  @map("owner_id")
-  capturedAt    DateTime @default(now()) @map("captured_at")
-  lastActivity  DateTime @default(now()) @map("last_activity")
-  capturePoints Int      @default(100) @map("capture_points")
-  owner         User?    @relation(fields: [ownerId], references: [id])
+  id            String                              @id @default(uuid())
+  gridId        String                              @unique @map("grid_id")
+  ownerId       String?                             @map("owner_id")
+  capturedAt    DateTime                            @default(now()) @map("captured_at")
+  lastActivity  DateTime                            @default(now()) @map("last_activity")
+  capturePoints Int                                 @default(100) @map("capture_points")
+  centerGeog    Unsupported("geography(Point,4326)")? @map("center_geog")
+  owner         User?                               @relation(fields: [ownerId], references: [id])
 
+  @@index([centerGeog], type: Gist)
   @@map("territories")
 }
 

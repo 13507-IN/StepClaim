@@ -116,6 +116,8 @@ export default function LandingPage() {
             delay={0.6}
           />
         </div>
+      </section>
+      
       {/* How it Works Section */}
       <section className="relative z-10 max-w-7xl mx-auto px-6 pb-32">
         <div className="text-center mb-16">

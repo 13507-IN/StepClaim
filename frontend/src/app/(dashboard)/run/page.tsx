@@ -33,7 +33,7 @@ export default function LiveRunPage() {
   const [durationSeconds, setDurationSeconds] = useState(0); // elapsed active time
   const [routePath, setRoutePath] = useState<[number, number][]>([]);
   
-  const [mapCenter, setMapCenter] = useState<[number, number]>([40.7128, -74.0060]);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([28.6139, 77.2090]); // New Delhi fallback
   const [capturedTerritories, setCapturedTerritories] = useState<string[]>([]);
 
   // Request GPS when component mounts

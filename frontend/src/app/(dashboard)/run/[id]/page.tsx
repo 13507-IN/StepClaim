@@ -69,8 +69,8 @@ export default function RunDetailPage({ params }: { params: Promise<{ id: string
 
   // Center map on middle point of routePath or first location
   const mapCenter: [number, number] = routePath.length > 0 
-    ? routePath[Math.floor(routePath.length / 2)] 
-    : [40.7128, -74.0060];
+    ? [run.locations[0].latitude, run.locations[0].longitude]
+    : [28.6139, 77.2090];
 
   // Duration Formatter
   const formatDuration = (secs: number) => {

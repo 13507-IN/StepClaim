@@ -6,6 +6,7 @@ const baseURL = `${backendUrl}/api/v1`;
 
 export const apiClient = axios.create({
   baseURL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },

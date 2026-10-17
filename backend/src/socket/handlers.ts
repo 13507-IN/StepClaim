@@ -2,6 +2,8 @@ import { Socket } from 'socket.io';
 import * as h3 from 'h3-js';
 import { GpsService } from '../services/gps.service.js';
 import { io } from './index.js';
+import { locationUpdateSchema } from '../validators/run.validator.js';
+import { redis } from '../config/redis.js';
 
 // Defensive H3 compatibility wrappers
 const latLngToCell = h3.latLngToCell || (h3 as any).geoToH3;
@@ -20,6 +22,7 @@ interface PresenceState {
 }
 
 const livePresenceByUserId = new Map<string, PresenceState>();
+const lastLocationUpdateByUserId = new Map<string, number>();
 
 /**
  * Register gameplay event listeners for a newly connected Socket.IO client.
@@ -39,15 +42,34 @@ export function registerSocketHandlers(socket: Socket): void {
       latitude: number;
       longitude: number;
       speed: number;
+      accuracy: number;
       activityType: 'WALKING' | 'RUNNING' | 'CYCLING';
-      runId: string | null;
+      runId: string;
     }) => {
       try {
-        const { latitude, longitude, speed, activityType, runId } = payload;
-
-        if (isNaN(latitude) || isNaN(longitude)) {
+        const parsed = locationUpdateSchema.safeParse(payload);
+        if (!parsed.success) {
+          socket.emit('LOCATION_REJECTED', { reason: 'invalid_payload' });
           return;
         }
+        const { latitude, longitude, speed, accuracy, activityType, runId } = parsed.data;
+
+        const now = Date.now();
+        let updateAllowed = false;
+        try {
+          updateAllowed = (await redis.set(
+            `gps-update-rate:${userId}`,
+            String(now),
+            'PX',
+            750,
+            'NX',
+          )) === 'OK';
+        } catch {
+          const previousUpdateAt = lastLocationUpdateByUserId.get(userId) ?? 0;
+          updateAllowed = now - previousUpdateAt >= 750;
+        }
+        if (!updateAllowed) return;
+        lastLocationUpdateByUserId.set(userId, now);
 
         // Process location through GPS service (coordinates filter + speed limit validation)
         const result = await gpsService.processLocationUpdate(
@@ -57,9 +79,11 @@ export function registerSocketHandlers(socket: Socket): void {
           longitude,
           speed,
           activityType,
+          accuracy,
         );
 
         if (!result.processed) {
+          socket.emit('LOCATION_REJECTED', { reason: result.reason });
           // If coordinates are flagged by Anti-Cheat, warn the client privately
           if (result.reason === 'unrealistic_speed' || result.reason === 'teleport') {
             socket.emit('CHEAT_WARNING', {
@@ -83,7 +107,6 @@ export function registerSocketHandlers(socket: Socket): void {
           currentParentCellRoom = newRoomName;
         }
 
-        const now = Date.now();
         const presence: PresenceState = {
           userId,
           username,
@@ -167,6 +190,7 @@ export function registerSocketHandlers(socket: Socket): void {
 
   socket.on('disconnect', () => {
     livePresenceByUserId.delete(userId);
+    lastLocationUpdateByUserId.delete(userId);
     socket.broadcast.emit('USER_DISCONNECTED', { userId });
   });
 }

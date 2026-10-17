@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { DynamicMap } from '@/components/map/dynamic-map';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, Clock, Flame, Gauge, Navigation, Route, Trophy, Share2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Flame, Gauge, Navigation, Route } from 'lucide-react';
 import { runService, RunDetailItem } from '@/services/run.api';
 import { territoryService } from '@/services/territory.api';
 import { useUserStore } from '@/store/useUserStore';
@@ -31,9 +31,9 @@ export default function RunDetailPage({ params }: { params: Promise<{ id: string
         ]);
         setRun(runDetails);
         setCapturedTerritories(territories.map(t => t.gridId));
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to load run details:', err);
-        setError(err.message || 'Failed to fetch run details.');
+        setError(err instanceof Error ? err.message : 'Failed to fetch run details.');
       } finally {
         setLoading(false);
       }
@@ -176,7 +176,7 @@ export default function RunDetailPage({ params }: { params: Promise<{ id: string
         <div className="flex items-center gap-3">
           <div className="bg-[#FC4C02]/10 border border-[#FC4C02]/30 text-[#FC4C02] px-4 py-2 rounded-xl text-center">
             <span className="text-xs font-semibold uppercase tracking-wider block">XP Awarded</span>
-            <span className="text-xl font-extrabold">+{run.xpEarned || 0} XP</span>
+            <span className="text-xl font-extrabold">+{run.xpGained || 0} XP</span>
           </div>
         </div>
       </div>

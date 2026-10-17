@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
 
@@ -13,6 +13,10 @@ const CircleMarker = dynamic(() => import('react-leaflet').then(mod => mod.Circl
 const Polygon = dynamic(() => import('react-leaflet').then(mod => mod.Polygon), { ssr: false });
 const Polyline = dynamic(() => import('react-leaflet').then(mod => mod.Polyline), { ssr: false });
 const Tooltip = dynamic(() => import('react-leaflet').then(mod => mod.Tooltip), { ssr: false });
+const MapUpdater = dynamic(
+  () => import('./map-updater').then((mod) => mod.MapUpdater),
+  { ssr: false },
+);
 
 import { cellToBoundary } from 'h3-js';
 import { calculateDistance } from '@/lib/utils';
@@ -38,7 +42,10 @@ export function DynamicMap({
   useEffect(() => {
     (async function init() {
       const L = await import('leaflet');
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      const defaultIconPrototype = L.Icon.Default.prototype as unknown as {
+        _getIconUrl?: () => string;
+      };
+      delete defaultIconPrototype._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
         iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -66,8 +73,6 @@ export function DynamicMap({
   }
 
   const startPoint = routePath.length > 0 ? routePath[0] : null;
-  const endPoint = routePath.length > 1 ? routePath[routePath.length - 1] : null;
-
   return (
     <div className="w-full h-full relative rounded-xl overflow-hidden shadow-sm border border-[var(--color-border)]">
       <MapContainer 
@@ -102,7 +107,7 @@ export function DynamicMap({
                 }}
               />
             );
-          } catch (e) {
+          } catch {
             return null;
           }
         })}
@@ -135,7 +140,7 @@ export function DynamicMap({
           >
             {username && (
               <Tooltip permanent direction="top" className="custom-map-tooltip">
-                {username}'s Route
+                {username}&apos;s Route
               </Tooltip>
             )}
           </Polyline>
@@ -180,15 +185,5 @@ export function DynamicMap({
       </MapContainer>
     </div>
   );
-}
-
-// Inner component to handle flyTo because useMap must be inside MapContainer
-function MapUpdater({ center }: { center: [number, number] }) {
-  const { useMap } = require('react-leaflet');
-  const map = useMap();
-  useEffect(() => {
-    map.flyTo(center, map.getZoom(), { animate: true, duration: 1 });
-  }, [center, map]);
-  return null;
 }
 

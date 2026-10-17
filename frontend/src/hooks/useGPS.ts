@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
 
 export interface LocationData {
   latitude: number;
@@ -15,22 +15,15 @@ export type SignalQuality = 'EXCELLENT' | 'GOOD' | 'FAIR' | 'POOR';
 export function useGPS(active: boolean = true) {
   const [location, setLocation] = useState<LocationData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const [signalQuality, setSignalQuality] = useState<SignalQuality>('POOR');
+  const geolocationAvailable = useSyncExternalStore(
+    () => () => undefined,
+    () => 'geolocation' in navigator,
+    () => true,
+  );
 
   useEffect(() => {
-    if (!active) {
-      setLoading(false);
-      return;
-    }
-
-    if (!('geolocation' in navigator)) {
-      setError('Geolocation is not supported by your browser.');
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
+    if (!active || !geolocationAvailable) return;
 
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
@@ -57,10 +50,8 @@ export function useGPS(active: boolean = true) {
         });
 
         setError(null);
-        setLoading(false);
       },
       (err) => {
-        setLoading(false);
         switch (err.code) {
           case err.PERMISSION_DENIED:
             setError('Location permission denied. Please enable it in your browser settings.');
@@ -86,8 +77,16 @@ export function useGPS(active: boolean = true) {
     return () => {
       navigator.geolocation.clearWatch(watchId);
     };
-  }, [active]);
+  }, [active, geolocationAvailable]);
 
-  return { location, error, loading, signalQuality };
+  return {
+    location,
+    error: error ?? (
+      active && !geolocationAvailable
+        ? 'Geolocation is not supported by your browser.'
+        : null
+    ),
+    loading: active && geolocationAvailable && !location && !error,
+    signalQuality,
+  };
 }
-

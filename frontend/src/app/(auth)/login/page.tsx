@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUserStore } from '@/store/useUserStore';
-import { authService } from '@/services/auth.api';
+import { authService, getApiErrorMessage } from '@/services/auth.api';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -40,8 +40,8 @@ export default function LoginPage() {
       } else {
         setError(response.message || 'Login failed');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || err.response?.data?.message || 'An error occurred during login');
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err, 'An error occurred during login'));
     } finally {
       setLoading(false);
     }
@@ -90,7 +90,7 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-[var(--color-foreground)]/60">
-            Don't have an account? <Link href="/register" className="text-[var(--color-primary)] hover:underline font-medium">Sign Up</Link>
+            Don&apos;t have an account? <Link href="/register" className="text-[var(--color-primary)] hover:underline font-medium">Sign Up</Link>
           </p>
         </CardFooter>
       </Card>

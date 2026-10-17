@@ -34,6 +34,20 @@ export const useUserStore = create<UserState>()(
     }),
     {
       name: 'stepclaim-user-storage',
+      version: 1,
+      // Keep profile display data persistent, but never place bearer tokens in
+      // localStorage. The HttpOnly refresh cookie restores the session on load.
+      partialize: (state) => ({ user: state.user } as UserState),
+      migrate: (persistedState) => {
+        const persisted = persistedState as Partial<UserState> | undefined;
+        return { user: persisted?.user ?? null } as UserState;
+      },
+      merge: (persistedState, currentState) => ({
+        ...currentState,
+        user: (persistedState as Partial<UserState> | undefined)?.user ?? null,
+        token: null,
+        isAuthenticated: false,
+      }),
     }
   )
 );

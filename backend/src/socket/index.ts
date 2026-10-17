@@ -2,6 +2,7 @@ import { Server as SocketIOServer, Socket } from 'socket.io';
 import { FastifyInstance } from 'fastify';
 import { verifyAccessToken } from '../utils/jwt.js';
 import { registerSocketHandlers } from './handlers.js';
+import { corsOrigins } from '../config/env.js';
 
 export let io: SocketIOServer | undefined;
 
@@ -13,7 +14,7 @@ export async function initSocketServer(fastify: FastifyInstance): Promise<void> 
   // Initialize Socket.IO with CORS settings matching Fastify's CORS configs
   io = new SocketIOServer(fastify.server, {
     cors: {
-      origin: '*', // Customize to specific domain in production
+      origin: corsOrigins,
       methods: ['GET', 'POST'],
       credentials: true,
     },

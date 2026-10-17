@@ -2,14 +2,52 @@
 
 import { Hexagon, LayoutDashboard, MapPin, User, Settings, LogOut } from 'lucide-react';
 import Link from 'next/link';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/store/useUserStore';
 import { authService } from '@/services/auth.api';
+import Image from 'next/image';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const token = useUserStore((state) => state.token);
+  const setAuth = useUserStore((state) => state.setAuth);
   const clearAuth = useUserStore((state) => state.clearAuth);
+  const [sessionReady, setSessionReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function restoreSession() {
+      if (token) {
+        setSessionReady(true);
+        return;
+      }
+
+      try {
+        const refresh = await authService.refresh();
+        const accessToken = refresh.data?.accessToken;
+        if (!refresh.success || !accessToken) {
+          throw new Error('Session could not be refreshed');
+        }
+        const currentUser = await authService.getMe();
+        if (!currentUser.success || !currentUser.data?.user) {
+          throw new Error('User session could not be restored');
+        }
+        setAuth(currentUser.data.user, accessToken);
+      } catch {
+        clearAuth();
+        router.replace('/login');
+      } finally {
+        if (!cancelled) setSessionReady(true);
+      }
+    }
+
+    void restoreSession();
+    return () => {
+      cancelled = true;
+    };
+  }, [token, setAuth, clearAuth, router]);
 
   const handleLogout = async () => {
     try {
@@ -22,14 +60,24 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     }
   };
 
+  if (!sessionReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-slate-300">
+        Restoring your session…
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex text-[var(--color-foreground)] overflow-hidden relative">
       {/* Shared Background Ambience for all Dashboard pages */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <img 
+        <Image
           src="/background.jpg" 
           alt="Dashboard Background" 
-          className="w-full h-full object-cover opacity-20 mix-blend-luminosity"
+          fill
+          sizes="100vw"
+          className="object-cover opacity-20 mix-blend-luminosity"
         />
         <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-[var(--color-background)]/90 to-black/80" />
       </div>

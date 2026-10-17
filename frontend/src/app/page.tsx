@@ -3,17 +3,21 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { Map, Zap, Trophy, ShieldAlert } from 'lucide-react';
+import { Map, Trophy, ShieldAlert } from 'lucide-react';
+import Image from 'next/image';
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-foreground)] overflow-hidden relative">
       {/* Background Image & Ambience */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <img 
+        <Image
           src="/background.jpg" 
           alt="Background" 
-          className="w-full h-full object-cover opacity-30 mix-blend-luminosity"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover opacity-30 mix-blend-luminosity"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-[var(--color-background)]/80 to-[var(--color-background)]" />
       </div>
@@ -148,4 +152,3 @@ function FeatureCard({ icon, title, description, delay }: { icon: React.ReactNod
     </motion.div>
   );
 }
-

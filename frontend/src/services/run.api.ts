@@ -4,15 +4,20 @@ export interface RunSession {
   id: string;
   userId: string;
   startTime: string;
-  status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+  endTime: string | null;
+  distance: number;
+  duration: number;
+  averageSpeed: number;
+  xpGained: number;
 }
 
 export interface RunEndResult {
-  runId: string;
-  durationSeconds: number;
-  distanceKm: number;
-  xpEarned: number;
-  territoriesCaptured: number;
+  run: RunHistoryItem;
+  xpGained: number;
+  leveledUp: boolean;
+  previousLevel: number;
+  newLevel: number;
+  streakMilestone: boolean;
 }
 
 export interface RunLocation {
@@ -35,12 +40,11 @@ export interface RunHistoryItem {
   userId: string;
   startTime: string;
   endTime: string | null;
-  status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
   distance: number;
   duration: number;
-  xpEarned: number;
-  territoriesCaptured: number;
-  activityType: 'WALKING' | 'RUNNING' | 'CYCLING';
+  averageSpeed: number;
+  xpGained: number;
+  createdAt: string;
 }
 
 export interface RunHistoryResponse {
@@ -77,9 +81,10 @@ export const runService = {
   sendLocation: async (payload: {
     latitude: number;
     longitude: number;
+    accuracy: number;
     speed?: number;
     activityType?: 'WALKING' | 'RUNNING' | 'CYCLING';
-    runId?: string | null;
+    runId: string;
   }) => {
     const response = await apiClient.post('/runs/location', payload);
     return response.data.data;

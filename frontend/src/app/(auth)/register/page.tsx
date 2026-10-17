@@ -8,14 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUserStore } from '@/store/useUserStore';
-import { authService } from '@/services/auth.api';
+import { authService, getApiErrorMessage } from '@/services/auth.api';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 const registerSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -41,8 +41,8 @@ export default function RegisterPage() {
       } else {
         setError(response.message || 'Registration failed');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || err.response?.data?.message || 'An error occurred during registration');
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err, 'An error occurred during registration'));
     } finally {
       setLoading(false);
     }

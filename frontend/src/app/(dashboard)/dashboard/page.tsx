@@ -61,7 +61,6 @@ export default function DashboardOverview() {
   };
 
   const formatRelativeTime = (date: Date) => {
-    const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
     const daysDifference = Math.round((date.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
     
     if (daysDifference === 0) {
@@ -79,7 +78,7 @@ export default function DashboardOverview() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70">Overview</h1>
-          <p className="text-[var(--color-foreground)]/60 text-lg">Welcome back, {user.username}! Here's how you're doing.</p>
+          <p className="text-[var(--color-foreground)]/60 text-lg">Welcome back, {user.username}! Here&apos;s how you&apos;re doing.</p>
         </div>
         <Link href="/run">
           <Button size="lg" className="rounded-xl h-14 px-8 shadow-[0_0_40px_rgba(var(--color-primary-rgb),0.3)] hover:shadow-[0_0_60px_rgba(var(--color-primary-rgb),0.5)] transition-all hover:scale-105 text-lg">
@@ -188,7 +187,7 @@ export default function DashboardOverview() {
                         {activity.type === 'RUN' ? `${activity.data.distance.toFixed(2)} km` : `Grid Capture`}
                       </p>
                       <p className="text-sm text-emerald-400 font-bold mt-0.5 drop-shadow-[0_0_5px_rgba(52,211,153,0.4)]">
-                        +{activity.type === 'RUN' ? activity.data.xpEarned : activity.data.capturePoints} XP
+                        +{activity.type === 'RUN' ? activity.data.xpGained : activity.data.capturePoints} XP
                       </p>
                     </div>
                   </div>

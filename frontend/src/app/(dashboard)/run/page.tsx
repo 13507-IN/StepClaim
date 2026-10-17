@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { DynamicMap } from '@/components/map/dynamic-map';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Play, Square, Pause, MapPin, Gauge, Timer, Flame, Navigation } from 'lucide-react';
+import { Play, Square, Pause, Gauge, Timer, Flame, Navigation } from 'lucide-react';
 import { useGPS } from '@/hooks/useGPS';
 import { calculateDistance } from '@/lib/utils';
 
@@ -33,11 +33,13 @@ export default function LiveRunPage() {
   const [durationSeconds, setDurationSeconds] = useState(0); // elapsed active time
   const [routePath, setRoutePath] = useState<[number, number][]>([]);
   
-  const [mapCenter, setMapCenter] = useState<[number, number]>([28.6139, 77.2090]); // New Delhi fallback
   const [capturedTerritories, setCapturedTerritories] = useState<string[]>([]);
 
   // Request GPS when component mounts
   const { location, error, loading: gpsLoading, signalQuality } = useGPS(true);
+  const mapCenter: [number, number] = location
+    ? [location.latitude, location.longitude]
+    : [28.6139, 77.2090]; // New Delhi fallback
   
   // Ref to hold the last processed location to calculate distance deltas
   const lastLocationRef = useRef<[number, number] | null>(null);
@@ -93,8 +95,6 @@ export default function LiveRunPage() {
   useEffect(() => {
     if (location) {
       const currentPos: [number, number] = [location.latitude, location.longitude];
-      setMapCenter(currentPos);
-      
       // Strava GPS Noise Filter: Ignore coordinates with low accuracy (> 30 meters)
       if (location.accuracy > 30) {
         return;
@@ -105,6 +105,7 @@ export default function LiveRunPage() {
         const locationPayload = {
           latitude: currentPos[0],
           longitude: currentPos[1],
+          accuracy: location.accuracy,
           speed: Math.max(0, speedKmH),
           activityType: activityType,
           runId: activeRunId

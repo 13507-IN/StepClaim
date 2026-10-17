@@ -51,6 +51,8 @@ model Run {
   user         User           @relation(fields: [userId], references: [id])
   locations    UserLocation[]
 
+  @@index([userId, startTime])
+  @@index([userId, endTime])
   @@map("runs")
 }
 
@@ -67,6 +69,8 @@ model UserLocation {
   user      User                               @relation(fields: [userId], references: [id])
 
   @@index([geog], type: Gist)
+  @@index([runId, timestamp])
+  @@index([userId, timestamp])
   @@map("user_locations")
 }
 

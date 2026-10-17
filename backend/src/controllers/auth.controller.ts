@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { AuthService } from '../services/auth.service.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 import { User } from '@prisma/client';
+import { registerSchema } from '../validators/auth.validator.js';
 
 export class AuthController {
   private authService = new AuthService();
@@ -45,7 +46,23 @@ export class AuthController {
         return;
       }
 
-      const result = await this.authService.register(username, email, password, avatarBuffer);
+      const validation = registerSchema.safeParse({ username, email, password });
+      if (!validation.success) {
+        reply.status(400).send(
+          errorResponse(
+            'VALIDATION_ERROR',
+            validation.error.issues.map((issue) => issue.message).join(', '),
+          ),
+        );
+        return;
+      }
+
+      const result = await this.authService.register(
+        validation.data.username,
+        validation.data.email,
+        validation.data.password,
+        avatarBuffer,
+      );
 
       // Set cookies for secure session management
       this.setCookies(reply, result.accessToken, result.refreshToken);
@@ -120,6 +137,12 @@ export class AuthController {
       const userId = request.user?.userId;
       if (userId) {
         await this.authService.logout(userId);
+      } else {
+        const cookies = request.cookies as Record<string, string> | undefined;
+        const refreshToken = cookies?.refreshToken;
+        if (refreshToken) {
+          await this.authService.logoutWithRefreshToken(refreshToken);
+        }
       }
 
       // Clear cookies
@@ -164,7 +187,7 @@ export class AuthController {
     reply.setCookie('accessToken', accessToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: 'strict',
+      sameSite: isProd ? 'none' : 'strict',
       path: '/',
       maxAge: 15 * 60, // 15 mins
     });
@@ -172,7 +195,7 @@ export class AuthController {
     reply.setCookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: 'strict',
+      sameSite: isProd ? 'none' : 'strict',
       path: '/',
       maxAge: 7 * 24 * 60 * 60, // 7 days
     });

@@ -5,6 +5,7 @@ import { GamificationService } from './gamification.service.js';
 import { redis } from '../config/redis.js';
 import { H3_RESOLUTION, ANTI_CHEAT, XP_RATES } from '../config/constants.js';
 import { Territory } from '@prisma/client';
+import { randomUUID } from 'node:crypto';
 
 // Extremely defensive, runtime-safe H3 library version compatibility wrappers
 const latLngToCell = h3.latLngToCell || (h3 as any).geoToH3;
@@ -56,103 +57,200 @@ export class TerritoryService {
     try {
       const gridId = this.getGridIdFromLatLng(latitude, longitude);
 
-      // Rule 3: Prevent instant recapture using Redis cooldown lock (30 seconds)
+      // A cooldown prevents repeated capture; a short distributed lock serializes
+      // concurrent requests while ownership and counters are updated in Postgres.
       const cooldownKey = `cooldown:territory:${gridId}`;
-      const cooldownExists = await redis.get(cooldownKey);
-      if (cooldownExists) {
-        const ttl = await redis.ttl(cooldownKey);
-        return {
-          captured: false,
-          gridId,
-          status: 'cooldown',
-          cooldownRemaining: ttl > 0 ? ttl : ANTI_CHEAT.TERRITORY_CAPTURE_COOLDOWN,
-        };
-      }
-
-      // Check current ownership
-      const currentTerritory = await this.territoryRepo.findByGridId(gridId);
-
-      if (currentTerritory && currentTerritory.ownerId === userId) {
-        // Already owned by this user, update last activity but do not recapture
-        await this.territoryRepo.upsertCapture(gridId, userId);
-        return {
-          captured: false,
-          gridId,
-          status: 'already_owned',
-        };
-      }
-
-      let captureStatus: 'claimed' | 'recaptured' = 'claimed';
-      const previousOwnerId = currentTerritory?.ownerId;
-
-      // Execute capture updates in Postgres
-      const prisma = (await import('../config/database.js')).prisma;
-      const territory = await prisma.$transaction(async (tx: any) => {
-        // Update or insert the territory claim
-        const updatedTerritory = await tx.territory.upsert({
-          where: { gridId },
-          update: {
-            ownerId: userId,
-            capturedAt: new Date(),
-            lastActivity: new Date(),
-            capturePoints: 100,
-          },
-          create: {
+      try {
+        const cooldownExists = await redis.get(cooldownKey);
+        if (cooldownExists) {
+          const ttl = await redis.ttl(cooldownKey);
+          return {
+            captured: false,
             gridId,
-            ownerId: userId,
-            capturedAt: new Date(),
-            lastActivity: new Date(),
-            capturePoints: 100,
-          },
-        });
+            status: 'cooldown',
+            cooldownRemaining: ttl > 0 ? ttl : ANTI_CHEAT.TERRITORY_CAPTURE_COOLDOWN,
+          };
+        }
+      } catch (error) {
+        // Postgres advisory locking and lastActivity remain authoritative if Redis is down.
+        console.warn('Redis cooldown lookup failed; checking the database:', error);
+      }
 
-        // Increment new owner's territoryCount
-        await tx.user.update({
-          where: { id: userId },
-          data: { territoryCount: { increment: 1 } },
-        });
+      const lockKey = `capture-lock:territory:${gridId}`;
+      const lockToken = randomUUID();
+      let distributedLockAcquired = false;
+      try {
+        const lockAcquired = await redis.set(
+          lockKey,
+          lockToken,
+          'EX',
+          15,
+          'NX',
+        );
+        if (lockAcquired !== 'OK') {
+          const ttl = await redis.ttl(lockKey);
+          return {
+            captured: false,
+            gridId,
+            status: 'cooldown',
+            cooldownRemaining: ttl > 0 ? ttl : 1,
+          };
+        }
+        distributedLockAcquired = true;
+      } catch (error) {
+        // The Postgres advisory lock below is the correctness boundary.
+        console.warn('Redis capture lock unavailable; using Postgres lock:', error);
+      }
 
-        // Decrement previous owner's territoryCount if applicable
-        if (previousOwnerId) {
-          captureStatus = 'recaptured';
-          await tx.user.update({
-            where: { id: previousOwnerId },
-            data: { territoryCount: { decrement: 1 } },
-          });
+      try {
+        // Recheck after acquiring the lock so an earlier request cannot have
+        // completed between the initial cooldown check and lock acquisition.
+        if (distributedLockAcquired) {
+          const cooldownAfterLock = await redis.get(cooldownKey).catch(() => null);
+          if (cooldownAfterLock) {
+            const ttl = await redis.ttl(cooldownKey);
+            return {
+              captured: false,
+              gridId,
+              status: 'cooldown',
+              cooldownRemaining: ttl > 0 ? ttl : ANTI_CHEAT.TERRITORY_CAPTURE_COOLDOWN,
+            };
+          }
         }
 
-        return updatedTerritory;
-      });
+        const prisma = (await import('../config/database.js')).prisma;
+        const capture = await prisma.$transaction(async (tx) => {
+          // Lock this grid in Postgres too, so correctness does not rely solely
+          // on Redis availability and concurrent captures see the latest owner.
+          await tx.$queryRaw`SELECT pg_advisory_xact_lock(7242, hashtext(${gridId}))`;
+          const currentTerritory = await tx.territory.findUnique({
+            where: { gridId },
+            select: { ownerId: true, lastActivity: true },
+          });
+          const previousOwnerId = currentTerritory?.ownerId ?? null;
 
-      // Set PostGIS center_geog on the territory (fail-safe)
-      try {
-        const { PostgisService } = await import('./postgis.service.js');
-        const postgis = new PostgisService();
-        await postgis.setTerritoryGeog(territory.id, latitude, longitude);
-      } catch {
-        // PostGIS not available — territory still works via H3 gridId
+          if (previousOwnerId === userId) {
+            return { territory: null, previousOwnerId, status: 'already_owned' as const };
+          }
+
+          const now = new Date();
+          if (
+            currentTerritory &&
+            now.getTime() - currentTerritory.lastActivity.getTime() <
+              ANTI_CHEAT.TERRITORY_CAPTURE_COOLDOWN * 1000
+          ) {
+            const cooldownRemaining = Math.ceil(
+              ANTI_CHEAT.TERRITORY_CAPTURE_COOLDOWN -
+                (now.getTime() - currentTerritory.lastActivity.getTime()) / 1000,
+            );
+            return {
+              territory: null,
+              previousOwnerId,
+              status: 'cooldown' as const,
+              cooldownRemaining,
+            };
+          }
+
+          const territory = await tx.territory.upsert({
+            where: { gridId },
+            update: {
+              ownerId: userId,
+              capturedAt: now,
+              lastActivity: now,
+              capturePoints: 100,
+            },
+            create: {
+              gridId,
+              ownerId: userId,
+              capturedAt: now,
+              lastActivity: now,
+              capturePoints: 100,
+            },
+          });
+
+          await tx.user.update({
+            where: { id: userId },
+            data: { territoryCount: { increment: 1 } },
+          });
+
+          if (previousOwnerId) {
+            await tx.user.update({
+              where: { id: previousOwnerId },
+              data: { territoryCount: { decrement: 1 } },
+            });
+          }
+
+          return {
+            territory,
+            previousOwnerId,
+            status: previousOwnerId ? 'recaptured' as const : 'claimed' as const,
+            cooldownRemaining: undefined,
+          };
+        });
+
+        if (capture.status === 'cooldown') {
+          return {
+            captured: false,
+            gridId,
+            status: 'cooldown',
+            cooldownRemaining: capture.cooldownRemaining,
+          };
+        }
+
+        if (capture.status === 'already_owned' || !capture.territory) {
+          return {
+            captured: false,
+            gridId,
+            status: 'already_owned',
+          };
+        }
+
+        // Set PostGIS center_geog on the territory (fail-safe)
+        try {
+          const { PostgisService } = await import('./postgis.service.js');
+          const postgis = new PostgisService();
+          await postgis.setTerritoryGeog(capture.territory.id, latitude, longitude);
+        } catch {
+          // PostGIS not available — territory still works via H3 gridId
+        }
+
+        // Publish the cooldown before releasing the capture lock.
+        await redis
+          .set(cooldownKey, 'locked', 'EX', ANTI_CHEAT.TERRITORY_CAPTURE_COOLDOWN)
+          .catch((error) => {
+            console.warn('Failed to cache territory cooldown:', error);
+          });
+
+        // Award Capture XP (100 XP) using gamification service
+        const xpGained = XP_RATES.TERRITORY_CAPTURE;
+        await this.gamificationService.awardXP(userId, xpGained, 'CAPTURE', 0);
+
+        // Trigger user badges eligibility check
+        await this.gamificationService.checkBadgeEligibility(userId);
+        if (capture.previousOwnerId) {
+          await this.gamificationService.checkBadgeEligibility(capture.previousOwnerId);
+        }
+
+        return {
+          captured: true,
+          gridId,
+          status: capture.status,
+          xpGained,
+          territory: capture.territory,
+        };
+      } finally {
+        // Only the request that owns this lock may release it.
+        if (distributedLockAcquired) {
+          await redis.eval(
+            "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end",
+            1,
+            lockKey,
+            lockToken,
+          ).catch((error) => {
+            console.warn('Failed to release territory capture lock:', error);
+          });
+        }
       }
-
-      // Set Redis Cooldown Lock (30s)
-      await redis.set(cooldownKey, 'locked', 'EX', ANTI_CHEAT.TERRITORY_CAPTURE_COOLDOWN);
-
-      // Award Capture XP (100 XP) using gamification service
-      const xpGained = XP_RATES.TERRITORY_CAPTURE;
-      await this.gamificationService.awardXP(userId, xpGained, 'CAPTURE', 0);
-
-      // Trigger user badges eligibility check
-      await this.gamificationService.checkBadgeEligibility(userId);
-      if (previousOwnerId) {
-        await this.gamificationService.checkBadgeEligibility(previousOwnerId);
-      }
-
-      return {
-        captured: true,
-        gridId,
-        status: captureStatus,
-        xpGained,
-        territory,
-      };
     } catch (error) {
       console.error('Error in captureTerritory service:', error);
       return {

@@ -3,6 +3,7 @@ import { AuthController } from '../controllers/auth.controller';
 import { validate } from '../middleware/validate.middleware';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { loginSchema } from '../validators/auth.validator';
+import { rateLimit } from '../middleware/rateLimit.middleware';
 
 /**
  * Fastify plugin registering all user authentication endpoints.
@@ -11,13 +12,15 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
   const controller = new AuthController();
 
   // Registration endpoint (supports multipart for avatar uploads)
-  fastify.post('/register', controller.register);
+  fastify.post('/register', { preHandler: rateLimit(10, 60) }, controller.register);
 
   // Login endpoint
-  fastify.post('/login', { preHandler: validate(loginSchema, 'body') }, controller.login);
+  fastify.post('/login', {
+    preHandler: [rateLimit(10, 60), validate(loginSchema, 'body')],
+  }, controller.login);
 
   // Refresh tokens endpoint
-  fastify.post('/refresh', controller.refresh);
+  fastify.post('/refresh', { preHandler: rateLimit(30, 60) }, controller.refresh);
 
   // Logout endpoint (clears active cookies and deletes Redis sessions)
   fastify.post('/logout', controller.logout);

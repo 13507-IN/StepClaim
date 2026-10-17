@@ -36,6 +36,17 @@ export class RunRepository {
   }
 
   /**
+   * Check that a run belongs to a user and is still accepting trackpoints.
+   */
+  async isActiveRunOwnedByUser(id: string, userId: string): Promise<boolean> {
+    const run = await prisma.run.findFirst({
+      where: { id, userId, endTime: null },
+      select: { id: true },
+    });
+    return run !== null;
+  }
+
+  /**
    * Find all runs belonging to a specific user.
    */
   async findByUserId(userId: string, limit = 10, skip = 0): Promise<Run[]> {
@@ -52,21 +63,36 @@ export class RunRepository {
    */
   async addLocation(
     userId: string,
-    runId: string | null,
+    runId: string,
     latitude: number,
     longitude: number,
     speed: number,
     timestamp: Date,
   ): Promise<UserLocation> {
-    const location = await prisma.userLocation.create({
-      data: {
-        userId,
-        runId,
-        latitude,
-        longitude,
-        speed,
-        timestamp,
-      },
+    const location = await prisma.$transaction(async (tx) => {
+      // Lock the run row so completion cannot race a final trackpoint insert.
+      const activeRun = await tx.$queryRaw<{ id: string }[]>`
+        SELECT "id"
+        FROM "runs"
+        WHERE "id" = ${runId}
+          AND "user_id" = ${userId}
+          AND "end_time" IS NULL
+        FOR UPDATE
+      `;
+      if (activeRun.length === 0) {
+        throw new Error('Run is not active or does not belong to user');
+      }
+
+      return tx.userLocation.create({
+        data: {
+          userId,
+          runId,
+          latitude,
+          longitude,
+          speed,
+          timestamp,
+        },
+      });
     });
 
     // Populate PostGIS geography column (fail-safe: don't crash if PostGIS is unavailable)
@@ -94,10 +120,18 @@ export class RunRepository {
       xpGained: number;
     },
   ): Promise<Run> {
-    return prisma.run.update({
-      where: { id },
+    const result = await prisma.run.updateMany({
+      where: { id, endTime: null },
       data,
     });
+    if (result.count !== 1) {
+      throw new Error('Run already ended');
+    }
+    const completedRun = await prisma.run.findUnique({ where: { id } });
+    if (!completedRun) {
+      throw new Error('Run not found after completion');
+    }
+    return completedRun;
   }
 
   /**

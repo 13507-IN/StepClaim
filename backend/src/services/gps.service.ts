@@ -22,7 +22,7 @@ export class GpsService {
     longitude: number,
     speed: number,
     activityType: 'WALKING' | 'RUNNING' | 'CYCLING',
-    timestampInput?: Date | string | number,
+    accuracy: number,
   ): Promise<{
     processed: boolean;
     reason?: string;
@@ -30,9 +30,34 @@ export class GpsService {
     distanceGained?: number;
     captureResult?: any;
   }> {
-    // 1. Fetch user's last recorded position (prioritize Redis cache for high speed, fallback to DB)
-    const redisKey = `active_location:${userId}`;
+    // Never accept trackpoints (or territory captures) outside the caller's active run.
+    // This prevents a valid user from attaching GPS data to another user's run.
+    if (!runId || !(await this.runRepo.isActiveRunOwnedByUser(runId, userId))) {
+      return { processed: false, reason: 'active_run_required' };
+    }
+
+    if (
+      !Number.isFinite(latitude) ||
+      latitude < -90 ||
+      latitude > 90 ||
+      !Number.isFinite(longitude) ||
+      longitude < -180 ||
+      longitude > 180 ||
+      !Number.isFinite(speed) ||
+      speed < 0 ||
+      !Number.isFinite(accuracy) ||
+      accuracy < 0
+    ) {
+      return { processed: false, reason: 'invalid_coordinates' };
+    }
+    if (accuracy > 35) {
+      return { processed: false, reason: 'poor_accuracy' };
+    }
+
+    // Keep anti-cheat history scoped to this run, not the user's previous activity.
+    const redisKey = `active_location:${userId}:${runId}`;
     let lastPoint: { latitude: number; longitude: number; timestamp: Date } | null = null;
+    let acceptedPointCount = 0;
 
     try {
       const lastPointRaw = await redis.get(redisKey);
@@ -43,6 +68,9 @@ export class GpsService {
           longitude: parsed.longitude,
           timestamp: new Date(parsed.timestamp),
         };
+        acceptedPointCount = Number.isInteger(parsed.acceptedPointCount)
+          ? parsed.acceptedPointCount
+          : 1;
       }
     } catch (redisErr) {
       // Fail-safe: fallback to checking latest UserLocation in DB
@@ -52,8 +80,11 @@ export class GpsService {
       try {
         const prisma = (await import('../config/database.js')).prisma;
         const latestLoc = await prisma.userLocation.findFirst({
-          where: { userId },
+          where: { userId, runId },
           orderBy: { timestamp: 'desc' },
+        });
+        acceptedPointCount = await prisma.userLocation.count({
+          where: { userId, runId },
         });
         if (latestLoc) {
           lastPoint = {
@@ -67,7 +98,8 @@ export class GpsService {
       }
     }
 
-    const pointTimestamp = timestampInput ? new Date(timestampInput) : new Date();
+    // Use server receipt time; client timestamps are not authoritative for speed checks.
+    const pointTimestamp = new Date();
 
     const currentPoint = {
       latitude,
@@ -92,8 +124,9 @@ export class GpsService {
     }
 
     // 3. Coordinate is valid, save position to DB (ALWAYS SAVES TRACKPOINT)
-    const validatedSpeed = check.speed || speed;
+    const validatedSpeed = check.speed ?? 0;
     await this.runService.logTrackpoint(userId, runId, latitude, longitude, validatedSpeed);
+    acceptedPointCount += 1;
 
     // 4. Cache latest location in Redis for future speed checks (fail-safe)
     try {
@@ -103,6 +136,7 @@ export class GpsService {
           latitude,
           longitude,
           timestamp: currentPoint.timestamp.toISOString(),
+          acceptedPointCount,
         }),
         'EX',
         3600, // expire in 1 hour
@@ -116,7 +150,11 @@ export class GpsService {
     }
 
     // 6. Check territory capture coordinates
-    const captureResult = await this.territoryService.captureTerritory(userId, latitude, longitude);
+    // Require multiple accepted fixes before the first claim; a single initial
+    // GPS sample proves location, not movement through the cell.
+    const captureResult = acceptedPointCount >= 3
+      ? await this.territoryService.captureTerritory(userId, latitude, longitude)
+      : undefined;
 
     return {
       processed: true,

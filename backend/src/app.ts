@@ -2,7 +2,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import cookie from '@fastify/cookie';
 import multipart from '@fastify/multipart';
-import { env } from './config/env';
+import { corsOrigins, env } from './config/env';
 import { apiRoutes } from './routes';
 import { initSocketServer } from './socket';
 import { disconnectRedis } from './config/redis';
@@ -38,13 +38,31 @@ async function bootstrap(): Promise<void> {
   try {
     // 1. Register Core Fastify Plugins
     await fastify.register(cors, {
-      origin: true, // Allow client dynamically in development, configure strictly in production
-      methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
+      origin: corsOrigins,
+      methods: ['GET', 'PUT', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
       credentials: true,
     });
 
+    // Reject browser-originated state changes from non-allowlisted sites.
+    // This is needed when production refresh cookies use SameSite=None.
+    fastify.addHook('onRequest', async (request, reply) => {
+      const origin = request.headers.origin;
+      const isStateChangingMethod = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(
+        request.method,
+      );
+      if (
+        isStateChangingMethod &&
+        origin &&
+        !corsOrigins.includes(origin)
+      ) {
+        return reply
+          .status(403)
+          .send({ success: false, message: 'Origin not allowed' });
+      }
+    });
+
     await fastify.register(cookie, {
-      secret: env.JWT_ACCESS_SECRET,
+      secret: env.COOKIE_SECRET,
     });
 
     await fastify.register(multipart, {

@@ -68,3 +68,9 @@ function parseEnv(): Env {
 }
 
 export const env = parseEnv();
+
+/** Comma-separated explicit origins shared by HTTP and Socket.IO CORS. */
+export const corsOrigins = env.CORS_ORIGIN
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);

@@ -112,13 +112,14 @@ export class AuthService {
       }
       
       // Verify token exists in Redis if Redis is available
+      let storedToken: string | null | undefined;
       try {
-        const storedToken = await redis.get(`refreshToken:${decoded.userId}`);
-        if (storedToken && storedToken !== token) {
-          throw new Error('Invalid refresh token');
-        }
+        storedToken = await redis.get(`refreshToken:${decoded.userId}`);
       } catch (redisErr) {
         // Fallback to JWT cryptographic verification if Redis is offline
+      }
+      if (storedToken !== undefined && storedToken !== token) {
+        throw new Error('Invalid refresh token');
       }
 
       // Generate new tokens
@@ -143,6 +144,21 @@ export class AuthService {
     try {
       await redis.del(`refreshToken:${userId}`);
     } catch (err) {}
+  }
+
+  /**
+   * Revoke the session represented by a valid refresh token.
+   * This supports logout even when the short-lived access token has expired.
+   */
+  async logoutWithRefreshToken(token: string): Promise<void> {
+    try {
+      const decoded = verifyRefreshToken(token);
+      if (decoded?.userId) {
+        await this.logout(decoded.userId);
+      }
+    } catch {
+      // Invalid/expired tokens still have their browser cookies cleared.
+    }
   }
 
   /**

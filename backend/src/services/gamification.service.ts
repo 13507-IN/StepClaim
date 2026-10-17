@@ -3,6 +3,7 @@ import { ActivityRepository } from '../repositories/activity.repository.js';
 import { BadgeRepository } from '../repositories/badge.repository.js';
 import { LEVEL_THRESHOLDS, STREAK } from '../config/constants.js';
 import { ActivityType } from '@prisma/client';
+import { prisma } from '../config/database.js';
 
 export class GamificationService {
   private userRepo = new UserRepository();
@@ -18,27 +19,36 @@ export class GamificationService {
     activityType: ActivityType,
     distance?: number,
   ): Promise<{ user: any; leveledUp: boolean; previousLevel: number; newLevel: number }> {
-    const user = await this.userRepo.findById(userId);
-    if (!user) throw new Error('User not found');
+    const award = await prisma.$transaction(async (tx) => {
+      // Serialize XP calculations so concurrent run/capture awards cannot overwrite each other.
+      await tx.$queryRaw`
+        SELECT "id" FROM "users" WHERE "id" = ${userId} FOR UPDATE
+      `;
+      const user = await tx.user.findUnique({ where: { id: userId } });
+      if (!user) throw new Error('User not found');
 
-    const previousLevel = user.level;
-    const newXP = user.xp + xpGained;
-
-    // Check level progression
-    let newLevel = user.level;
-    for (const threshold of LEVEL_THRESHOLDS) {
-      if (newXP >= threshold.xpRequired) {
-        newLevel = threshold.level;
+      const previousLevel = user.level;
+      const newXP = user.xp + xpGained;
+      let newLevel = user.level;
+      for (const threshold of LEVEL_THRESHOLDS) {
+        if (newXP >= threshold.xpRequired) {
+          newLevel = threshold.level;
+        }
       }
-    }
 
-    const leveledUp = newLevel > previousLevel;
+      const updatedUser = await tx.user.update({
+        where: { id: userId },
+        data: { xp: newXP, level: newLevel },
+      });
 
-    // Update user stats in DB
-    const updatedUser = await this.userRepo.updateStats(userId, {
-      xp: newXP,
-      level: newLevel,
+      return {
+        user: updatedUser,
+        leveledUp: newLevel > previousLevel,
+        previousLevel,
+        newLevel,
+      };
     });
+    const { user: updatedUser, leveledUp, previousLevel, newLevel } = award;
 
     // Log the action to activities table
     await this.activityRepo.create(userId, activityType, xpGained, distance);
@@ -97,8 +107,8 @@ export class GamificationService {
       await tryAwardBadge('Territory King');
     }
 
-    // 4. 100km Club (totalDistance >= 100,000m)
-    if (user.totalDistance >= 100000) {
+    // Distances are persisted in kilometres throughout user and run statistics.
+    if (user.totalDistance >= 100) {
       await tryAwardBadge('100km Club');
     }
 
@@ -116,7 +126,7 @@ export class GamificationService {
 
     if (maxSingleRun) {
       // 6. Marathoner (single run >= 42.195 km)
-      if (maxSingleRun.distance >= 42195) {
+      if (maxSingleRun.distance >= 42.195) {
         await tryAwardBadge('Marathoner');
       }
 

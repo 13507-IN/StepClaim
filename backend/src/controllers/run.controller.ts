@@ -41,11 +41,6 @@ export class RunController {
         activityType: 'WALKING' | 'RUNNING' | 'CYCLING';
       };
 
-      if (!runId || !activityType) {
-        reply.status(400).send(errorResponse('Missing required fields'));
-        return;
-      }
-
       const result = await this.runService.endRun(runId, userId, activityType);
       reply.status(200).send(successResponse(result, 'Run ended successfully'));
     } catch (error: any) {
@@ -64,13 +59,11 @@ export class RunController {
         return;
       }
 
-      const { limit, page } = request.query as { limit?: string; page?: string };
-      const parsedLimit = limit ? parseInt(limit, 10) : 10;
-      const parsedPage = page ? parseInt(page, 10) : 1;
-      const skip = (parsedPage - 1) * parsedLimit;
+      const { limit, page } = request.query as { limit: number; page: number };
+      const skip = (page - 1) * limit;
 
-      const runs = await this.runRepo.findByUserId(userId, parsedLimit, skip);
-      reply.status(200).send(successResponse({ runs, page: parsedPage, limit: parsedLimit }, 'Run history retrieved successfully'));
+      const runs = await this.runRepo.findByUserId(userId, limit, skip);
+      reply.status(200).send(successResponse({ runs, page, limit }, 'Run history retrieved successfully'));
     } catch (error: any) {
       reply.status(500).send(errorResponse(error.message));
     }
@@ -117,22 +110,26 @@ export class RunController {
         return;
       }
 
-      const { latitude, longitude, speed = 0, activityType = 'RUNNING', runId = null } = request.body as {
+      const { latitude, longitude, speed, activityType, runId, accuracy } = request.body as {
         latitude: number;
         longitude: number;
-        speed?: number;
-        activityType?: 'WALKING' | 'RUNNING' | 'CYCLING';
-        runId?: string | null;
+        speed: number;
+        accuracy: number;
+        activityType: 'WALKING' | 'RUNNING' | 'CYCLING';
+        runId: string;
       };
-
-      if (latitude === undefined || longitude === undefined) {
-        reply.status(400).send(errorResponse('Latitude and Longitude are required'));
-        return;
-      }
 
       const { GpsService } = await import('../services/gps.service.js');
       const gpsService = new GpsService();
-      const result = await gpsService.processLocationUpdate(userId, runId, latitude, longitude, speed, activityType);
+      const result = await gpsService.processLocationUpdate(
+        userId,
+        runId,
+        latitude,
+        longitude,
+        speed,
+        activityType,
+        accuracy,
+      );
 
       reply.status(200).send(successResponse(result, 'Location processed successfully'));
     } catch (error: any) {

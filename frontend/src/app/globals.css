@@ -1,54 +1,49 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  
-  --color-background: #fafafa;
-  --color-foreground: #09090b;
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
 
-  --color-primary: #3b82f6; /* Blue 500 */
+  --color-background: #080d16;
+  --color-foreground: #f8fafc;
+
+  --color-primary: #38bdf8;
   --color-primary-foreground: #ffffff;
 
-  --color-surface: #ffffff;
-  --color-surface-foreground: #09090b;
-  --color-surface-muted: #f4f4f5;
+  --color-surface: #111827;
+  --color-surface-foreground: #f8fafc;
+  --color-surface-muted: #1e293b;
 
-  --color-border: #e4e4e7;
-  --color-border-hover: #d4d4d8;
+  --color-border: #263244;
+  --color-border-hover: #3a4a60;
 
-  --color-accent: #8b5cf6; /* Violet 500 */
+  --color-accent: #a78bfa;
 
-  --color-destructive: #ef4444;
-  --color-success: #22c55e;
-}
-
-/* Dark mode overrides (if needed, but sticking to a clean minimal aesthetic) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: #09090b;
-    --color-foreground: #fafafa;
-    
-    --color-surface: #18181b;
-    --color-surface-foreground: #fafafa;
-    --color-surface-muted: #27272a;
-
-    --color-border: #27272a;
-    --color-border-hover: #3f3f46;
-  }
+  --color-destructive: #fb7185;
+  --color-success: #34d399;
 }
 
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
 }
 
-html, body {
-  @apply bg-[var(--color-background)] text-[var(--color-foreground)] antialiased min-h-screen selection:bg-[var(--color-primary)] selection:text-white;
+html,
+body {
+  @apply min-h-screen bg-[var(--color-background)] text-[var(--color-foreground)] antialiased selection:bg-[var(--color-primary)] selection:text-slate-950;
+}
+
+body {
+  font-feature-settings: "ss01" on;
+}
+
+::selection {
+  background: var(--color-primary);
+  color: #07111e;
 }
 
 /* Base custom utilities */
 @layer utilities {
   .glass-panel {
-    @apply bg-white/70 dark:bg-black/40 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-lg;
+    @apply border border-white/10 bg-slate-950/50 shadow-lg backdrop-blur-xl;
   }
 }
 

@@ -73,85 +73,92 @@ export default function DashboardOverview() {
   };
 
   return (
-    <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto relative z-10">
+    <div className="relative z-10 mx-auto max-w-7xl space-y-8 px-4 py-6 sm:px-6 md:space-y-10 md:p-10">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70">Overview</h1>
-          <p className="text-[var(--color-foreground)]/60 text-lg">Welcome back, {user.username}! Here&apos;s how you&apos;re doing.</p>
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-sky-300">Your StepClaim</p>
+          <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">Welcome back, {user.username}</h1>
+          <p className="mt-2 text-sm text-slate-400 sm:text-base">Every outing adds to your story. Here&apos;s your progress so far.</p>
         </div>
         <Link href="/run">
-          <Button size="lg" className="rounded-xl h-14 px-8 shadow-[0_0_40px_rgba(var(--color-primary-rgb),0.3)] hover:shadow-[0_0_60px_rgba(var(--color-primary-rgb),0.5)] transition-all hover:scale-105 text-lg">
-            <Activity className="h-5 w-5 mr-3" />
-            Start Run
+          <Button size="lg" className="h-12 rounded-xl px-5 font-bold shadow-lg shadow-sky-500/15 transition-transform hover:-translate-y-0.5 sm:h-13 sm:px-6">
+            <Activity className="mr-2 h-5 w-5" />
+            Start a new run
           </Button>
         </Link>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10 border-l-4 border-l-[var(--color-primary)] hover:bg-white/10 transition-colors">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="border-white/[0.08] border-l-2 border-l-sky-300 bg-[#101827]/80 backdrop-blur-xl transition-colors hover:bg-[#142033]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-semibold text-[var(--color-foreground)]/70 uppercase tracking-wider">Total Distance</CardTitle>
-            <div className="p-2 bg-[var(--color-primary)]/10 rounded-lg">
-              <Route className="h-5 w-5 text-[var(--color-primary)]" />
+            <CardTitle className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Total distance</CardTitle>
+            <div className="rounded-xl bg-sky-300/10 p-2.5">
+              <Route className="h-5 w-5 text-sky-300" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-black mt-2">{user.totalDistance?.toFixed(2) || '0.00'} <span className="text-2xl text-[var(--color-foreground)]/50">km</span></div>
+            <div className="mt-2 text-3xl font-black tracking-tight text-white">{user.totalDistance?.toFixed(2) || '0.00'} <span className="text-lg font-semibold text-slate-500">km</span></div>
+            <p className="mt-2 text-xs font-medium text-slate-500">All-time distance</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10 border-l-4 border-l-[var(--color-accent)] hover:bg-white/10 transition-colors">
+        <Card className="border-white/[0.08] border-l-2 border-l-violet-300 bg-[#101827]/80 backdrop-blur-xl transition-colors hover:bg-[#142033]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-semibold text-[var(--color-foreground)]/70 uppercase tracking-wider">Territories</CardTitle>
-            <div className="p-2 bg-[var(--color-accent)]/10 rounded-lg">
-              <Hexagon className="h-5 w-5 text-[var(--color-accent)]" />
+            <CardTitle className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Territories</CardTitle>
+            <div className="rounded-xl bg-violet-300/10 p-2.5">
+              <Hexagon className="h-5 w-5 text-violet-300" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-black mt-2">{user.territoryCount || 0}</div>
-            <p className="text-xs text-[var(--color-foreground)]/60 mt-2 font-medium">Currently controlling</p>
+            <div className="mt-2 text-3xl font-black tracking-tight text-white">{user.territoryCount || 0}</div>
+            <p className="mt-2 text-xs font-medium text-slate-500">Currently in your collection</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10 border-l-4 border-l-orange-500 hover:bg-white/10 transition-colors">
+        <Card className="border-white/[0.08] border-l-2 border-l-orange-300 bg-[#101827]/80 backdrop-blur-xl transition-colors hover:bg-[#142033]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-semibold text-[var(--color-foreground)]/70 uppercase tracking-wider">Active Streak</CardTitle>
-            <div className="p-2 bg-orange-500/10 rounded-lg">
-              <Flame className="h-5 w-5 text-orange-500" />
+            <CardTitle className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Active streak</CardTitle>
+            <div className="rounded-xl bg-orange-300/10 p-2.5">
+              <Flame className="h-5 w-5 text-orange-300" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-black mt-2">{user.streak || 0} <span className="text-2xl text-[var(--color-foreground)]/50">days</span></div>
-            <p className="text-xs text-[var(--color-foreground)]/60 mt-2 font-medium">Keep it up!</p>
+            <div className="mt-2 text-3xl font-black tracking-tight text-white">{user.streak || 0} <span className="text-lg font-semibold text-slate-500">days</span></div>
+            <p className="mt-2 text-xs font-medium text-slate-500">Keep your momentum going</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10 border-l-4 border-l-yellow-500 hover:bg-white/10 transition-colors">
+        <Card className="border-white/[0.08] border-l-2 border-l-amber-300 bg-[#101827]/80 backdrop-blur-xl transition-colors hover:bg-[#142033]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-semibold text-[var(--color-foreground)]/70 uppercase tracking-wider">Level</CardTitle>
-            <div className="p-2 bg-yellow-500/10 rounded-lg">
-              <Trophy className="h-5 w-5 text-yellow-500" />
+            <CardTitle className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Level</CardTitle>
+            <div className="rounded-xl bg-amber-300/10 p-2.5">
+              <Trophy className="h-5 w-5 text-amber-300" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-black mt-2">{user.level || 1}</div>
+            <div className="mt-2 text-3xl font-black tracking-tight text-white">{user.level || 1}</div>
             <div className="flex items-center gap-3 mt-3">
-              <div className="h-2 flex-1 bg-black/40 rounded-full overflow-hidden shadow-inner">
-                <div className="h-full bg-gradient-to-r from-yellow-600 to-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.5)]" style={{ width: `${xpProgress}%` }} />
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
+                <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-yellow-200" style={{ width: `${xpProgress}%` }} />
               </div>
-              <span className="text-xs font-bold text-[var(--color-foreground)]/70">{Math.floor(xpProgress)}%</span>
+              <span className="text-xs font-bold text-slate-300">{Math.floor(xpProgress)}%</span>
             </div>
+            <p className="mt-2 text-xs font-medium text-slate-500">Progress to next level</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10 shadow-xl shadow-black/20">
-          <CardHeader className="border-b border-white/5 pb-4">
-            <CardTitle className="text-xl font-bold">Recent Activity</CardTitle>
+      <div className="grid grid-cols-1 gap-5">
+        <Card className="border-white/[0.08] bg-[#101827]/80 shadow-xl shadow-black/10 backdrop-blur-xl">
+          <CardHeader className="flex-row items-center justify-between border-b border-white/[0.06] pb-4">
+            <div>
+              <CardTitle className="text-lg font-bold text-white">Recent activity</CardTitle>
+              <p className="mt-1 text-xs text-slate-500">Your latest runs and territory captures</p>
+            </div>
+            <Link href="/run" className="text-xs font-bold text-sky-300 transition hover:text-sky-200">View live run</Link>
           </CardHeader>
           <CardContent className="p-2">
             {loading ? (

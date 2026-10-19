@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { DynamicMap } from '@/components/map/dynamic-map';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,20 @@ import { runService } from '@/services/run.api';
 import { authService } from '@/services/auth.api';
 
 type ActivityType = 'WALKING' | 'RUNNING' | 'CYCLING';
+type ActivityEstimate = ActivityType | 'STATIONARY' | 'VEHICLE' | 'UNKNOWN';
+
+const VEHICLE_SPEED_THRESHOLD_KMH = 45;
+const VEHICLE_ALERT_INTERVAL_MS = 10_000;
+const GPS_SAMPLE_MAX_AGE_MS = 5_000;
+
+function estimateActivity(speedKmh: number | null): ActivityEstimate {
+  if (speedKmh === null || !Number.isFinite(speedKmh)) return 'UNKNOWN';
+  if (speedKmh >= VEHICLE_SPEED_THRESHOLD_KMH) return 'VEHICLE';
+  if (speedKmh >= 20) return 'CYCLING';
+  if (speedKmh >= 8) return 'RUNNING';
+  if (speedKmh >= 1) return 'WALKING';
+  return 'STATIONARY';
+}
 
 export default function LiveRunPage() {
   const router = useRouter();
@@ -32,17 +46,37 @@ export default function LiveRunPage() {
   const [distance, setDistance] = useState(0); // distance in km
   const [durationSeconds, setDurationSeconds] = useState(0); // elapsed active time
   const [routePath, setRoutePath] = useState<[number, number][]>([]);
-  
+  const [vehicleWarningActive, setVehicleWarningActive] = useState(false);
+  const [vehicleAlertCount, setVehicleAlertCount] = useState(0);
+  const [stopError, setStopError] = useState<string | null>(null);
+
   const [capturedTerritories, setCapturedTerritories] = useState<string[]>([]);
 
   // Request GPS when component mounts
   const { location, error, loading: gpsLoading, signalQuality } = useGPS(true);
+  const estimatedSpeedKmh =
+    location && location.accuracy <= 30 ? location.speed : null;
   const mapCenter: [number, number] = location
     ? [location.latitude, location.longitude]
     : [28.6139, 77.2090]; // New Delhi fallback
   
   // Ref to hold the last processed location to calculate distance deltas
   const lastLocationRef = useRef<[number, number] | null>(null);
+  const latestSpeedSampleRef = useRef<{
+    speedKmh: number | null;
+    receivedAt: number;
+  } | null>(null);
+  const activityTypeRef = useRef(activityType);
+  const activityCandidateRef = useRef<{ type: ActivityType; count: number } | null>(null);
+  const vehicleSinceRef = useRef<number | null>(null);
+  const vehicleAlertCountRef = useRef(0);
+  const autoStopTriggeredRef = useRef(false);
+  const autoStopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stopInProgressRef = useRef(false);
+
+  useEffect(() => {
+    activityTypeRef.current = activityType;
+  }, [activityType]);
 
   // Active Timer Tick Effect
   useEffect(() => {
@@ -97,18 +131,52 @@ export default function LiveRunPage() {
       const currentPos: [number, number] = [location.latitude, location.longitude];
       // Strava GPS Noise Filter: Ignore coordinates with low accuracy (> 30 meters)
       if (location.accuracy > 30) {
+        latestSpeedSampleRef.current = null;
         return;
       }
 
+      latestSpeedSampleRef.current = {
+        speedKmh: estimatedSpeedKmh,
+        receivedAt: Date.now(),
+      };
+
+      const speedActivity = estimateActivity(estimatedSpeedKmh);
+      if (isRunning && !isPaused && activeRunId && (
+        speedActivity === 'WALKING' ||
+        speedActivity === 'RUNNING' ||
+        speedActivity === 'CYCLING'
+      )) {
+        const candidate = activityCandidateRef.current;
+        const count = candidate?.type === speedActivity ? candidate.count + 1 : 1;
+        activityCandidateRef.current = { type: speedActivity, count };
+        if (count >= 2 && activityTypeRef.current !== speedActivity) {
+          activityTypeRef.current = speedActivity;
+          setActivityType(speedActivity);
+          activityCandidateRef.current = null;
+        }
+      } else {
+        activityCandidateRef.current = null;
+      }
+
       if (isRunning && !isPaused && activeRunId) {
-        const speedKmH = location.speed ?? 0;
+        if (autoStopTriggeredRef.current) return;
+        // Do not submit vehicle-speed fixes for territory capture or workout
+        // distance. The run remains active during the warning period.
+        if (
+          estimatedSpeedKmh !== null &&
+          estimatedSpeedKmh >= VEHICLE_SPEED_THRESHOLD_KMH
+        ) {
+          lastLocationRef.current = currentPos;
+          return;
+        }
+
         const locationPayload = {
           latitude: currentPos[0],
           longitude: currentPos[1],
           accuracy: location.accuracy,
-          speed: Math.max(0, speedKmH),
-          activityType: activityType,
-          runId: activeRunId
+          speed: Math.max(0, estimatedSpeedKmh ?? 0),
+          activityType: activityTypeRef.current,
+          runId: activeRunId,
         };
 
         const sendUpdate = () => {
@@ -140,7 +208,7 @@ export default function LiveRunPage() {
         }
       }
     }
-  }, [location, isRunning, isPaused, activeRunId, socket, isConnected, activityType]);
+  }, [location, estimatedSpeedKmh, isRunning, isPaused, activeRunId, socket, isConnected]);
 
   const handleStartRun = async () => {
     try {
@@ -153,6 +221,15 @@ export default function LiveRunPage() {
       setDurationSeconds(0);
       setRoutePath([]);
       lastLocationRef.current = null;
+      latestSpeedSampleRef.current = null;
+      vehicleSinceRef.current = null;
+      vehicleAlertCountRef.current = 0;
+      autoStopTriggeredRef.current = false;
+      stopInProgressRef.current = false;
+      activityCandidateRef.current = null;
+      setVehicleWarningActive(false);
+      setVehicleAlertCount(0);
+      setStopError(null);
       
       if (socket) {
         socket.emit('RUN_STARTED', { runId: run.id });
@@ -168,36 +245,109 @@ export default function LiveRunPage() {
     setIsPaused((prev) => !prev);
   };
 
-  const handleStopRun = async () => {
-    if (!activeRunId) return;
+  const handleStopRun = useCallback(async () => {
+    if (!activeRunId || stopInProgressRef.current) return;
+    stopInProgressRef.current = true;
+    setStopError(null);
     const finishedRunId = activeRunId;
     try {
       setIsProcessing(true);
       setIsRunning(false);
       setIsPaused(false);
       lastLocationRef.current = null;
+      if (autoStopTimeoutRef.current) {
+        clearTimeout(autoStopTimeoutRef.current);
+        autoStopTimeoutRef.current = null;
+      }
       
       if (socket) {
         socket.emit('RUN_ENDED', { runId: activeRunId });
       }
       
-      await runService.endRun(activeRunId, activityType);
+      await runService.endRun(activeRunId, activityTypeRef.current);
+      setActiveRunId(null);
       
       // Refetch user stats (distance, territories) to update dashboard seamlessly
-      const meRes = await authService.getMe();
-      if (meRes.success && meRes.data) {
-        setUser(meRes.data.user);
+      try {
+        const meRes = await authService.getMe();
+        if (meRes.success && meRes.data) {
+          setUser(meRes.data.user);
+        }
+      } catch (err) {
+        console.error('Run saved, but user stats could not be refreshed:', err);
       }
       
-      setActiveRunId(null);
       // Redirect immediately to the recorded path visualizer /run/[id] page
       router.push(`/run/${finishedRunId}`);
     } catch (err) {
       console.error('Failed to end run:', err);
+      setStopError('Could not save this workout. Check your connection and retry finishing.');
     } finally {
       setIsProcessing(false);
+      stopInProgressRef.current = false;
     }
-  };
+  }, [activeRunId, socket, setUser, router]);
+
+  // Treat speed as a heuristic: label the activity, warn at sustained
+  // vehicle-like speed, and stop after three 10-second warnings.
+  useEffect(() => {
+    if (!isRunning || isPaused || !activeRunId) {
+      if (!autoStopTriggeredRef.current) {
+        vehicleSinceRef.current = null;
+        vehicleAlertCountRef.current = 0;
+        setVehicleWarningActive(false);
+        setVehicleAlertCount(0);
+      }
+      return;
+    }
+
+    const monitor = setInterval(() => {
+      if (autoStopTriggeredRef.current) return;
+
+      const sample = latestSpeedSampleRef.current;
+      const now = Date.now();
+      const isVehicleSpeed =
+        sample !== null &&
+        sample.speedKmh !== null &&
+        sample.speedKmh >= VEHICLE_SPEED_THRESHOLD_KMH &&
+        now - sample.receivedAt <= GPS_SAMPLE_MAX_AGE_MS;
+
+      if (!isVehicleSpeed) {
+        vehicleSinceRef.current = null;
+        vehicleAlertCountRef.current = 0;
+        setVehicleWarningActive(false);
+        setVehicleAlertCount(0);
+        return;
+      }
+
+      if (vehicleSinceRef.current === null) {
+        vehicleSinceRef.current = now;
+      }
+      setVehicleWarningActive(true);
+
+      const elapsedMs = now - vehicleSinceRef.current;
+      const alertsDue = Math.min(
+        3,
+        Math.floor(elapsedMs / VEHICLE_ALERT_INTERVAL_MS),
+      );
+      while (vehicleAlertCountRef.current < alertsDue) {
+        vehicleAlertCountRef.current += 1;
+        setVehicleAlertCount(vehicleAlertCountRef.current);
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+          navigator.vibrate([250, 150, 250]);
+        }
+      }
+
+      if (vehicleAlertCountRef.current >= 3) {
+        autoStopTriggeredRef.current = true;
+        autoStopTimeoutRef.current = setTimeout(() => {
+          void handleStopRun();
+        }, 900);
+      }
+    }, 250);
+
+    return () => clearInterval(monitor);
+  }, [isRunning, isPaused, activeRunId, handleStopRun]);
 
   // Telemetry Calculations
   const formatTimer = (totalSecs: number) => {
@@ -221,9 +371,17 @@ export default function LiveRunPage() {
   };
 
   // Current Speed (km/h)
-  const currentSpeed = location?.speed 
-    ? location.speed.toFixed(1)
+  const currentSpeed = estimatedSpeedKmh !== null
+    ? estimatedSpeedKmh.toFixed(1)
     : (distance > 0 && durationSeconds > 0 ? ((distance / durationSeconds) * 3600).toFixed(1) : '0.0');
+  const activityEstimate = estimateActivity(estimatedSpeedKmh);
+  const activityEstimateLabel = activityEstimate === 'UNKNOWN'
+    ? 'Waiting for GPS'
+    : activityEstimate === 'STATIONARY'
+      ? 'Stationary / unclear'
+      : activityEstimate === 'VEHICLE'
+        ? 'Vehicle-like speed'
+        : activityEstimate.charAt(0) + activityEstimate.slice(1).toLowerCase();
 
   const getSignalBadgeColor = () => {
     switch (signalQuality) {
@@ -264,6 +422,29 @@ export default function LiveRunPage() {
         ) : (
           <p className="text-sm text-gray-300 drop-shadow-sm">Real-time Strava-grade path recording & H3 territory conquest.</p>
         )}
+        <p className="w-fit rounded-full border border-white/10 bg-black/60 px-3 py-1 text-xs font-medium text-gray-200 backdrop-blur">
+          Speed-based estimate: <span className="font-bold text-white">{activityEstimateLabel}</span>
+        </p>
+        <p className="text-xs text-gray-400">
+          Speed-only estimate; a very fast cyclist may be mistaken for a vehicle.
+        </p>
+        {vehicleWarningActive && (
+          <p
+            role="alert"
+            aria-live="assertive"
+            className="max-w-md rounded-xl border border-red-400/60 bg-red-950/90 px-4 py-3 text-sm font-bold text-red-100 shadow-xl"
+          >
+            Vehicle-like speed detected ({estimatedSpeedKmh?.toFixed(1)} km/h). Slow down.
+            {vehicleAlertCount < 3
+              ? ` Alert ${vehicleAlertCount} of 3; another warning comes every 10 seconds.`
+              : ' Three warnings reached — stopping your workout…'}
+          </p>
+        )}
+        {stopError && (
+          <p role="alert" className="max-w-md rounded-lg border border-red-500/40 bg-black/80 px-3 py-2 text-sm text-red-300">
+            {stopError}
+          </p>
+        )}
       </div>
 
       {/* Map Container */}
@@ -282,7 +463,7 @@ export default function LiveRunPage() {
       <Card className="glass-panel shrink-0 p-5 sticky bottom-4 shadow-2xl border-white/10">
         <CardContent className="p-0 flex flex-col gap-4">
           {/* Top Activity Selector (When Not Running) */}
-          {!isRunning && (
+          {!isRunning && !activeRunId && (
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Activity Mode</span>
               <div className="flex items-center gap-2 bg-black/30 p-1 rounded-lg border border-white/5">
@@ -341,10 +522,17 @@ export default function LiveRunPage() {
           {/* Action Buttons */}
           <div className="flex items-center justify-end gap-3 pt-2 border-t border-white/10">
             {!isRunning ? (
-              <Button size="lg" className="rounded-full shadow-lg bg-[#FC4C02] hover:bg-[#e04300] text-white font-bold px-8" onClick={handleStartRun} disabled={isProcessing}>
-                <Play className="h-5 w-5 mr-2 fill-current" />
-                {isProcessing ? 'Starting...' : 'Start Workout'}
-              </Button>
+              activeRunId ? (
+                <Button size="lg" variant="destructive" className="rounded-full shadow-lg font-bold px-6" onClick={handleStopRun} disabled={isProcessing}>
+                  <Square className="h-5 w-5 mr-2 fill-current" />
+                  {isProcessing ? 'Saving...' : 'Retry Finish'}
+                </Button>
+              ) : (
+                <Button size="lg" className="rounded-full shadow-lg bg-[#FC4C02] hover:bg-[#e04300] text-white font-bold px-8" onClick={handleStartRun} disabled={isProcessing}>
+                  <Play className="h-5 w-5 mr-2 fill-current" />
+                  {isProcessing ? 'Starting...' : 'Start Workout'}
+                </Button>
+              )
             ) : (
               <div className="flex items-center gap-3 w-full justify-between">
                 <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">

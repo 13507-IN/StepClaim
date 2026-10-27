@@ -73,6 +73,20 @@ export function DynamicMap({
   }
 
   const startPoint = routePath.length > 0 ? routePath[0] : null;
+
+  const cartoApiKey = process.env.NEXT_PUBLIC_CARTO_API_KEY;
+
+  // If a CARTO API key is provided, use CARTO raster tiles; otherwise fall back to free OpenStreetMap with dark styling (no key required)
+  const tileUrl = cartoApiKey
+    ? `https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key=${cartoApiKey}`
+    : (process.env.NEXT_PUBLIC_MAP_TILE_URL || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+
+  const tileAttribution = cartoApiKey
+    ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    : (process.env.NEXT_PUBLIC_MAP_ATTRIBUTION || '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors');
+
+  const tileClassName = cartoApiKey ? '' : 'map-tiles-dark';
+
   return (
     <div className="w-full h-full relative rounded-xl overflow-hidden shadow-sm border border-[var(--color-border)]">
       <MapContainer 
@@ -84,10 +98,12 @@ export function DynamicMap({
         className="w-full h-full"
       >
         <MapUpdater center={center} />
-        {/* Sleek Premium Dark Mode map tiles from CartoDB */}
+        {/* Map Tile Layer - Free OpenStreetMap with Dark Theme filter or CARTO if API key configured */}
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url={tileUrl}
+          attribution={tileAttribution}
+          className={tileClassName}
+          maxZoom={19}
         />
 
         {/* Render captured territories from H3 indices */}

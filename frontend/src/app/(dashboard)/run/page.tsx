@@ -49,6 +49,7 @@ export default function LiveRunPage() {
   const [vehicleWarningActive, setVehicleWarningActive] = useState(false);
   const [vehicleAlertCount, setVehicleAlertCount] = useState(0);
   const [stopError, setStopError] = useState<string | null>(null);
+  const [startError, setStartError] = useState<string | null>(null);
 
   const [capturedTerritories, setCapturedTerritories] = useState<string[]>([]);
 
@@ -213,6 +214,7 @@ export default function LiveRunPage() {
   const handleStartRun = async () => {
     try {
       setIsProcessing(true);
+      setStartError(null);
       const run = await runService.startRun();
       setActiveRunId(run.id);
       setIsRunning(true);
@@ -234,8 +236,10 @@ export default function LiveRunPage() {
       if (socket) {
         socket.emit('RUN_STARTED', { runId: run.id });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to start run:', err);
+      const msg = err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to start workout. Please check your connection.';
+      setStartError(msg);
     } finally {
       setIsProcessing(false);
     }
@@ -518,6 +522,13 @@ export default function LiveRunPage() {
               <span className="text-2xl font-black tracking-tight text-white mt-1">{currentSpeed} <span className="text-xs font-normal text-gray-400">km/h</span></span>
             </div>
           </div>
+
+          {/* Start Error Feedback */}
+          {startError && (
+            <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-2 rounded-lg text-center font-medium">
+              ⚠️ {startError}
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex items-center justify-end gap-3 pt-2 border-t border-white/10">

@@ -122,7 +122,7 @@ export class TerritoryService {
         const capture = await prisma.$transaction(async (tx) => {
           // Lock this grid in Postgres too, so correctness does not rely solely
           // on Redis availability and concurrent captures see the latest owner.
-          await tx.$queryRaw`SELECT pg_advisory_xact_lock(7242, hashtext(${gridId}))`;
+          await tx.$executeRaw`SELECT pg_advisory_xact_lock(7242, hashtext(${gridId}))`;
           const currentTerritory = await tx.territory.findUnique({
             where: { gridId },
             select: { ownerId: true, lastActivity: true },

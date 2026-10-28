@@ -15,7 +15,7 @@ export class RunService {
   async startRun(userId: string): Promise<Run> {
     return prisma.$transaction(async (tx) => {
       // Ensure concurrent start requests cannot create multiple active runs.
-      await tx.$queryRaw`
+      await tx.$executeRaw`
         SELECT pg_advisory_xact_lock(7241, hashtext(${userId}))
       `;
       const activeRun = await tx.run.findFirst({

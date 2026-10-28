@@ -1,5 +1,6 @@
 // removed
 import { Outfit } from "next/font/google";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Providers from "@/components/providers";
 
@@ -7,8 +8,6 @@ const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
 });
-
-import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
   title: "StepClaim | Real-World Movement Game",
@@ -35,8 +34,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${outfit.variable} font-sans`} suppressHydrationWarning>
+    <html lang="en" className={outfit.variable} suppressHydrationWarning>
+      <body className="font-sans" suppressHydrationWarning>
         <Providers>
           {children}
         </Providers>

@@ -36,11 +36,11 @@ export function useGPS(active: boolean = true) {
       (position) => {
         const accuracy = position.coords.accuracy;
 
-        // Signal Quality assessment
+        // Signal Quality assessment (calibrated for real-world smartphone GPS)
         let quality: SignalQuality = 'POOR';
-        if (accuracy <= 10) quality = 'EXCELLENT';
-        else if (accuracy <= 20) quality = 'GOOD';
-        else if (accuracy <= 35) quality = 'FAIR';
+        if (accuracy <= 15) quality = 'EXCELLENT';
+        else if (accuracy <= 30) quality = 'GOOD';
+        else if (accuracy <= 65) quality = 'FAIR';
         setSignalQuality(quality);
 
         // Convert speed m/s to km/h when provided by the device.
@@ -50,7 +50,7 @@ export function useGPS(active: boolean = true) {
             ? rawSpeed * 3.6
             : null;
 
-        if (accuracy > 30) {
+        if (accuracy > 65) {
           previousAccuratePositionRef.current = null;
         } else {
           const previous = previousAccuratePositionRef.current;
@@ -60,10 +60,10 @@ export function useGPS(active: boolean = true) {
           if (
             speedKmH === null &&
             previous &&
-            accuracy <= 15 &&
-            previous.accuracy <= 15 &&
-            elapsedSeconds >= 3 &&
-            elapsedSeconds <= 10
+            accuracy <= 35 &&
+            previous.accuracy <= 35 &&
+            elapsedSeconds >= 2 &&
+            elapsedSeconds <= 12
           ) {
             const distanceKm = calculateDistance(
               previous.latitude,
@@ -73,7 +73,7 @@ export function useGPS(active: boolean = true) {
             );
             // Avoid turning small GPS jitter into extreme apparent speeds.
             const minimumReliableDistanceKm =
-              (accuracy + previous.accuracy) / 1000;
+              (accuracy + previous.accuracy) / 1500;
             if (distanceKm >= minimumReliableDistanceKm) {
               const estimatedSpeed = (distanceKm / elapsedSeconds) * 3600;
               speedKmH = Number.isFinite(estimatedSpeed) ? estimatedSpeed : null;
@@ -102,28 +102,54 @@ export function useGPS(active: boolean = true) {
       (err) => {
         switch (err.code) {
           case err.PERMISSION_DENIED:
-            setError('Location permission denied. Please enable it in your browser settings.');
+            setError('Location permission denied. Please enable Precise Location in your browser settings.');
             break;
           case err.POSITION_UNAVAILABLE:
-            setError('Location information is unavailable.');
+            setError('Location information is unavailable. Check your device GPS.');
             break;
           case err.TIMEOUT:
-            setError('The request to get user location timed out.');
+            // Do not permanently show blocking error if we already have a fix
+            setLocation((prev) => {
+              if (!prev) setError('Waiting for GPS satellite fix. Please move outdoors with clear sky view.');
+              return prev;
+            });
             break;
           default:
-            setError('An unknown error occurred.');
+            setError('An unknown GPS error occurred.');
             break;
         }
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
+        timeout: 27000,
+        maximumAge: 2000,
       }
     );
 
+    // Refresh position immediately when user unlocks or returns to browser tab
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            setLocation({
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude,
+              accuracy: pos.coords.accuracy,
+              speed: pos.coords.speed ? pos.coords.speed * 3.6 : null,
+              timestamp: pos.timestamp,
+            });
+          },
+          () => {},
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
+        );
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       navigator.geolocation.clearWatch(watchId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [active, geolocationAvailable]);
 

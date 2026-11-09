@@ -56,7 +56,7 @@ export default function LiveRunPage() {
   // Request GPS when component mounts
   const { location, error, loading: gpsLoading, signalQuality } = useGPS(true);
   const estimatedSpeedKmh =
-    location && location.accuracy <= 30 ? location.speed : null;
+    location && location.accuracy <= 65 ? location.speed : null;
   const mapCenter: [number, number] = location
     ? [location.latitude, location.longitude]
     : [28.6139, 77.2090]; // New Delhi fallback
@@ -125,13 +125,45 @@ export default function LiveRunPage() {
     };
   }, [socket]);
 
+  // Screen Wake Lock API to prevent mobile phone screen from sleeping and halting GPS
+  useEffect(() => {
+    let wakeLock: any = null;
+
+    async function acquireLock() {
+      if (typeof window !== 'undefined' && 'wakeLock' in navigator && isRunning && !isPaused) {
+        try {
+          wakeLock = await (navigator as any).wakeLock.request('screen');
+        } catch {
+          // Wake lock unavailable or denied
+        }
+      }
+    }
+
+    void acquireLock();
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isRunning && !isPaused) {
+        void acquireLock();
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      if (wakeLock) {
+        wakeLock.release().catch(() => {});
+      }
+    };
+  }, [isRunning, isPaused]);
+
   // Update map center automatically whenever GPS gets a new live location
   // Filter accuracy & distance noise before appending to route path
   useEffect(() => {
     if (location) {
       const currentPos: [number, number] = [location.latitude, location.longitude];
-      // Strava GPS Noise Filter: Ignore coordinates with low accuracy (> 30 meters)
-      if (location.accuracy > 30) {
+      // Mobile GPS Noise Filter: Accept coordinates up to 65 meters (standard smartphone GPS accuracy in cities)
+      if (location.accuracy > 65) {
         latestSpeedSampleRef.current = null;
         return;
       }
@@ -184,7 +216,15 @@ export default function LiveRunPage() {
           if (socket && isConnected) {
             socket.emit('LOCATION_UPDATED', locationPayload);
           } else {
-            runService.sendLocation(locationPayload).catch(console.error);
+            runService.sendLocation(locationPayload)
+              .then((data: any) => {
+                if (data?.captureResult?.captured && data.captureResult.gridId) {
+                  setCapturedTerritories((prev) =>
+                    prev.includes(data.captureResult.gridId) ? prev : [...prev, data.captureResult.gridId]
+                  );
+                }
+              })
+              .catch(console.error);
           }
         };
 
@@ -460,6 +500,7 @@ export default function LiveRunPage() {
           username={user?.username} 
           capturedTerritories={capturedTerritories} 
           trackColor="#FC4C02"
+          accuracy={location?.accuracy}
         />
       </div>
 

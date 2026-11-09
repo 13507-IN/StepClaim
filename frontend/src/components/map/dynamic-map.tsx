@@ -28,6 +28,7 @@ interface DynamicMapProps {
   username?: string;
   capturedTerritories?: string[];
   trackColor?: string;
+  accuracy?: number;
 }
 
 export function DynamicMap({ 
@@ -36,7 +37,8 @@ export function DynamicMap({
   routePath = [], 
   username, 
   capturedTerritories = [],
-  trackColor = '#FC4C02' // Strava signature orange
+  trackColor = '#FC4C02', // Strava signature orange
+  accuracy = 25,
 }: DynamicMapProps) {
   // Fix Leaflet icons issue in Next.js
   useEffect(() => {
@@ -196,7 +198,7 @@ export function DynamicMap({
         <Circle 
           center={center} 
           pathOptions={{ fillColor: trackColor, color: trackColor, weight: 1, fillOpacity: 0.15 }} 
-          radius={30} 
+          radius={Math.min(Math.max(accuracy, 10), 80)} 
         />
       </MapContainer>
     </div>

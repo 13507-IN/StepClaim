@@ -69,6 +69,8 @@ a {
 .landing-hero,
 .how-section,
 .movement-section,
+.landing-gallery-section,
+.closing-band,
 .landing-footer {
   width: min(100% - 64px, 1320px);
   margin-inline: auto;
@@ -917,15 +919,30 @@ a {
 }
 
 .landing-footer {
-  display: grid;
-  min-height: 112px;
-  grid-template-columns: 1fr 1fr 1fr;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 48px 0 56px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.footer-main-row {
+  display: flex;
   align-items: center;
-  gap: 20px;
+  justify-content: space-between;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .footer-brand {
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  text-decoration: none;
 }
 
 .footer-brand .landing-mark {
@@ -937,18 +954,35 @@ a {
   width: 14px;
 }
 
-.landing-footer p {
+.footer-motto {
   margin: 0;
   color: var(--quiet);
-  font-size: 13px;
+  font-size: 14px;
   text-align: center;
 }
 
-.landing-footer > div {
+.footer-nav-links {
   display: flex;
-  justify-content: flex-end;
   gap: 22px;
-  font-size: 13px;
+  font-size: 14px;
+}
+
+.footer-nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.footer-nav-links a:hover {
+  color: var(--ink);
+}
+
+.footer-credits {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  text-align: center;
+  letter-spacing: 0.02em;
 }
 
 @media (max-width: 1000px) {
@@ -956,6 +990,8 @@ a {
   .landing-hero,
   .how-section,
   .movement-section,
+  .landing-gallery-section,
+  .closing-band,
   .landing-footer {
     width: min(100% - 48px, 1320px);
   }
@@ -995,6 +1031,8 @@ a {
   .landing-hero,
   .how-section,
   .movement-section,
+  .landing-gallery-section,
+  .closing-band,
   .landing-footer {
     width: min(100% - 36px, 600px);
   }
@@ -1154,6 +1192,8 @@ a {
   .landing-hero,
   .how-section,
   .movement-section,
+  .landing-gallery-section,
+  .closing-band,
   .landing-footer {
     width: min(100% - 32px, 600px);
   }
@@ -1343,43 +1383,44 @@ a {
   box-shadow: 0 0 10px #34d399;
 }
 
-/* Visual Showcase Cards in Sections */
-.aesthetic-media-card {
+/* Anti-Slop Design Taste Cards (House Rules 1, 4, 5) */
+.landing-gallery-section {
+  width: min(100% - 64px, 1320px);
+  margin: 120px auto 140px;
+}
+
+.gallery-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+  margin-top: 48px;
+}
+
+.taste-card {
   position: relative;
+  background: #131824;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
-  transition: transform 0.4s ease, border-color 0.4s ease;
-}
-
-.aesthetic-media-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(114, 221, 210, 0.4);
-}
-
-.aesthetic-media-card img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.6s ease;
-}
-
-.aesthetic-media-card:hover img {
-  transform: scale(1.04);
-}
-
-.card-glass-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(7, 16, 17, 0.95) 0%, rgba(7, 16, 17, 0.4) 50%, transparent 100%);
+  padding: 28px;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding: 24px;
+  justify-content: space-between;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
-.card-pill-tag {
+/* House Rule 5: linked card lifts 2px */
+.taste-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.3);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+}
+
+.taste-card-head {
+  margin-bottom: 24px;
+}
+
+.taste-tag {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1390,38 +1431,94 @@ a {
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .tag-sunrise {
-  background: rgba(251, 146, 60, 0.2);
+  background: rgba(251, 146, 60, 0.15);
   color: #fb923c;
-  border: 1px solid rgba(251, 146, 60, 0.4);
+  border: 1px solid rgba(251, 146, 60, 0.35);
 }
 
 .tag-athlete {
-  background: rgba(56, 189, 248, 0.2);
+  background: rgba(56, 189, 248, 0.15);
   color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.4);
+  border: 1px solid rgba(56, 189, 248, 0.35);
 }
 
 .tag-device {
-  background: rgba(52, 211, 153, 0.2);
+  background: rgba(52, 211, 153, 0.15);
   color: #34d399;
-  border: 1px solid rgba(52, 211, 153, 0.4);
+  border: 1px solid rgba(52, 211, 153, 0.35);
 }
 
-/* Gallery Showcase Grid */
-.landing-gallery-section {
-  width: min(100% - 64px, 1320px);
-  margin: 120px auto;
+.taste-card-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #f2f5f3;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
 }
 
-.gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 28px;
-  margin-top: 48px;
+.taste-card-copy {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #8b949e;
+  margin: 0;
+}
+
+.taste-photo-frame {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0a0d0f;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* House Rule 5: photo zooms 1.025 inside its frame */
+.taste-photo-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.taste-card:hover .taste-photo-frame img {
+  transform: scale(1.025);
+}
+
+/* House Rule 5: Buttons step on hover and press on click */
+.primary-link,
+.quiet-link,
+.closing-link,
+.landing-nav-cta {
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background 0.15s ease, border-color 0.15s ease;
+}
+
+.primary-link:hover,
+.closing-link:hover,
+.landing-nav-cta:hover {
+  transform: translateY(-1px);
+}
+
+.primary-link:active,
+.closing-link:active,
+.landing-nav-cta:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 1024px) {
+  .gallery-cards-grid {
+    grid-template-columns: 1fr;
+    max-width: 540px;
+    margin-inline: auto;
+  }
+  .taste-photo-frame {
+    height: 280px;
+  }
 }
 
 @media (max-width: 768px) {

@@ -36,8 +36,18 @@ export default function LandingPage() {
   const selectedStage = demoStages[activeStage];
   const selectedMode = movementModes[activeMode];
 
+  const handleStageKeyDown = (event: React.KeyboardEvent, index: number) => {
+    const isArrow = event.key === 'ArrowRight' || event.key === 'ArrowLeft';
+    if (isArrow === false) return;
+    event.preventDefault();
+    const direction = event.key === 'ArrowRight' ? 1 : -1;
+    const next = (index + direction + demoStages.length) % demoStages.length;
+    setActiveStage(next);
+    document.getElementById(`stage-tab-${next}`)?.focus();
+  };
+
   return (
-    <div className="stepclaim-site">
+    <div className="stepclaim-site" data-type="software" data-radius="soft" data-buttons="pill" data-ground="sky">
       <header className="landing-header">
         <Link href="/" className="landing-brand" aria-label="StepClaim home">
           <span className="landing-mark"><Hexagon aria-hidden="true" /></span>
@@ -51,12 +61,13 @@ export default function LandingPage() {
       </header>
 
       <main>
-        <section className="landing-hero" aria-labelledby="hero-title">
+        {/* Screen 1: Hero alone */}
+        <section className="landing-hero" data-enter aria-labelledby="hero-title">
           <motion.div
             className="hero-message"
-            initial={{ opacity: 0, y: 22 }}
+            initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, ease: [0.22, 0.7, 0.2, 1] }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
             <h1 id="hero-title"><span>Your route.</span><span>Your territory.</span></h1>
             <p>StepClaim turns running, walking, and riding into territory you can capture, grow, and revisit.</p>
@@ -69,9 +80,9 @@ export default function LandingPage() {
           <motion.div
             className="hero-art"
             data-ui
-            initial={{ opacity: 0, scale: 0.975 }}
+            initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.08, ease: [0.22, 0.7, 0.2, 1] }}
+            transition={{ duration: 0.7, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
           >
             <TerritoryShader />
             
@@ -92,69 +103,35 @@ export default function LandingPage() {
                 <span>4 Territories Claimed</span>
               </div>
             </div>
-
-            <div className="art-caption" data-ui><span>Real-Time GPS Tracking</span><span>Your phone becomes your conquest console</span></div>
-            <div className="art-key"><span /><span>Territory claimed</span></div>
           </motion.div>
-          <motion.div
-            className="hero-bottomline"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-          >
+
+          <div className="hero-bottomline">
             <span>Move through the familiar.</span>
             <span>See it differently.</span>
-          </motion.div>
+          </div>
         </section>
 
+        {/* Screen 2: How It Works */}
         <section className="how-section" id="how-it-works" aria-labelledby="how-title">
           <div className="section-intro">
-            <motion.h2
-              id="how-title"
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.35 }}
-              transition={{ duration: 0.45 }}
-            >
-              The city opens up as you move.
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.35 }}
-              transition={{ duration: 0.45, delay: 0.08 }}
-            >
-              Track a route, claim the ground you cover, then build on it next time you head out.
-            </motion.p>
+            <h2 id="how-title">The city opens up as you move.</h2>
+            <p>Track a route, claim the ground you cover, then build on it next time you head out.</p>
           </div>
           <div className="demo-layout">
-            <motion.div
-              className="demo-copy"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.25 }}
-              transition={{ duration: 0.5 }}
-            >
+            <div className="demo-copy">
               <div className="demo-tabs" role="tablist" aria-label="How StepClaim works">
                 {demoStages.map((stage, index) => (
-                <button
-                  key={stage.name}
-                  id={`stage-tab-${index}`}
-                  role="tab"
-                  type="button"
-                  aria-selected={activeStage === index}
-                  aria-controls="stage-panel"
-                  tabIndex={activeStage === index ? 0 : -1}
-                  className={activeStage === index ? 'demo-tab is-selected' : 'demo-tab'}
-                  onClick={() => setActiveStage(index)}
-                  onKeyDown={(event) => {
-                    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
-                    event.preventDefault();
-                    const direction = event.key === 'ArrowRight' ? 1 : -1;
-                    const next = (index + direction + demoStages.length) % demoStages.length;
-                    setActiveStage(next);
-                    document.getElementById(`stage-tab-${next}`)?.focus();
-                  }}
+                  <button
+                    key={stage.name}
+                    id={`stage-tab-${index}`}
+                    role="tab"
+                    type="button"
+                    aria-selected={activeStage === index}
+                    aria-controls="stage-panel"
+                    tabIndex={activeStage === index ? 0 : -1}
+                    className={activeStage === index ? 'demo-tab is-selected' : 'demo-tab'}
+                    onClick={() => setActiveStage(index)}
+                    onKeyDown={(event) => handleStageKeyDown(event, index)}
                   >
                     {stage.name}
                   </button>
@@ -171,16 +148,12 @@ export default function LandingPage() {
                 <p>{selectedStage.copy}</p>
               </div>
               <Link href="/register" className="text-link">Make your first move <ArrowRight aria-hidden="true" /></Link>
-            </motion.div>
+            </div>
 
-            <motion.div
+            <div
               className={`territory-demo stage-${activeStage}`}
               data-ui
               aria-label={`Territory preview: ${selectedStage.name}`}
-              initial={{ opacity: 0, scale: 0.985 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.55 }}
             >
               <div className="demo-map-lines" aria-hidden="true" />
               <div className="demo-map-cells" aria-hidden="true">
@@ -200,37 +173,19 @@ export default function LandingPage() {
                 <span>{activeStage === 0 ? 'Route tracked' : activeStage === 1 ? 'Territory expanded' : 'Progress saved'}</span>
               </div>
               <span className="map-wordmark">STEPCLAIM</span>
-            </motion.div>
+            </div>
           </div>
         </section>
 
+        {/* Screen 3: Movement Modes */}
         <section className="movement-section" aria-labelledby="movement-title">
           <div className="movement-heading">
-            <motion.h2
-              id="movement-title"
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.35 }}
-              transition={{ duration: 0.45 }}
-            >
-              Every pace counts.
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.35 }}
-              transition={{ duration: 0.45, delay: 0.08 }}
-            >
-              Run, walk, or ride. StepClaim follows the way you already like to move.
-            </motion.p>
+            <h2 id="movement-title">Every pace counts.</h2>
+            <p>Run, walk, or ride. StepClaim follows the way you already like to move.</p>
           </div>
-          <motion.div
+          <div
             className={`mode-preview mode-${activeMode}`}
             data-ui
-            initial={{ opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.25 }}
-            transition={{ duration: 0.5, delay: 0.08 }}
           >
             <div className="mode-options" role="group" aria-label="Choose a movement type">
               {movementModes.map((mode, index) => (
@@ -259,129 +214,85 @@ export default function LandingPage() {
               <h3>{selectedMode.name}</h3>
               <p>{selectedMode.description}</p>
             </div>
-          </motion.div>
+          </div>
         </section>
 
-        {/* Aesthetic Visual Gallery Showcase */}
+        {/* Screen 4: Real Movement Gallery Showcase (Anti-Slop Taste Cards) */}
         <section className="landing-gallery-section" aria-labelledby="gallery-title">
           <div className="section-intro">
-            <motion.h2
-              id="gallery-title"
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.35 }}
-              transition={{ duration: 0.45 }}
-            >
-              Real movement. Real world.
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.35 }}
-              transition={{ duration: 0.45, delay: 0.08 }}
-            >
-              From sunrise loops to high-cadence strides, every outing expands your territory map.
-            </motion.p>
+            <h2 id="gallery-title">Real movement. Real world.</h2>
+            <p>From sunrise loops to high-cadence strides, every outing expands your territory map.</p>
           </div>
 
-          <div className="gallery-grid">
+          <div className="gallery-cards-grid">
             {/* Card 1: Hand holding Phone with StepClaim */}
-            <motion.div
-              className="aesthetic-media-card h-[400px]"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.5 }}
-            >
-              <img 
-                src="/images/phone-mockup.png" 
-                alt="Smartphone running StepClaim live tracking in hand" 
-              />
-              <div className="card-glass-overlay">
-                <span className="card-pill-tag tag-device">
-                  <Sparkles className="w-3 h-3 mr-1" /> Live Companion
+            <div className="taste-card">
+              <div className="taste-card-head">
+                <span className="taste-tag tag-device">
+                  <Sparkles className="w-3.5 h-3.5" aria-hidden="true" /> Live Companion
                 </span>
-                <h3 className="text-xl font-bold text-white tracking-tight">The City in Your Hand</h3>
-                <p className="text-sm text-gray-300 mt-1">Real-time GPS tracking with H3 hexagonal conquest right in your mobile browser.</p>
+                <h3 className="taste-card-title">The City in Your Hand</h3>
+                <p className="taste-card-copy">Real-time GPS tracking with hexagonal conquest right in your mobile browser.</p>
               </div>
-            </motion.div>
+              <div className="taste-photo-frame">
+                <img 
+                  src="/images/phone-mockup.png" 
+                  alt="Smartphone running StepClaim live tracking held outdoors" 
+                  loading="lazy"
+                />
+              </div>
+            </div>
 
             {/* Card 2: Morning Trail Sunrise */}
-            <motion.div
-              className="aesthetic-media-card h-[400px]"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              <img 
-                src="/images/morning-trail.jpg" 
-                alt="Sunlit morning running trail under green trees" 
-              />
-              <div className="card-glass-overlay">
-                <span className="card-pill-tag tag-sunrise">
-                  <Compass className="w-3 h-3 mr-1" /> Golden Hour Routes
+            <div className="taste-card">
+              <div className="taste-card-head">
+                <span className="taste-tag tag-sunrise">
+                  <Compass className="w-3.5 h-3.5" aria-hidden="true" /> Golden Hour Routes
                 </span>
-                <h3 className="text-xl font-bold text-white tracking-tight">Dawn Patrol Loops</h3>
-                <p className="text-sm text-gray-300 mt-1">Transform quiet morning paths and tree-lined neighborhood streets into claimed zones.</p>
+                <h3 className="taste-card-title">Dawn Patrol Loops</h3>
+                <p className="taste-card-copy">Transform quiet morning paths and tree-lined neighborhood streets into claimed zones.</p>
               </div>
-            </motion.div>
+              <div className="taste-photo-frame">
+                <img 
+                  src="/images/morning-trail.jpg" 
+                  alt="Sunlit morning running trail under trees" 
+                  loading="lazy"
+                />
+              </div>
+            </div>
 
             {/* Card 3: Runner in Action */}
-            <motion.div
-              className="aesthetic-media-card h-[400px]"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <img 
-                src="/images/runner-action.jpg" 
-                alt="Athletic runner pacing outdoors" 
-              />
-              <div className="card-glass-overlay">
-                <span className="card-pill-tag tag-athlete">
-                  <Flame className="w-3 h-3 mr-1" /> Pace & Power
+            <div className="taste-card">
+              <div className="taste-card-head">
+                <span className="taste-tag tag-athlete">
+                  <Flame className="w-3.5 h-3.5" aria-hidden="true" /> Pace and Power
                 </span>
-                <h3 className="text-xl font-bold text-white tracking-tight">Built for Real Athletes</h3>
-                <p className="text-sm text-gray-300 mt-1">Push your race pace, earn XP per 100 meters, level up, and maintain your daily streak.</p>
+                <h3 className="taste-card-title">Built for Real Athletes</h3>
+                <p className="taste-card-copy">Push your race pace, earn XP per 100 meters, level up, and maintain your daily streak.</p>
               </div>
-            </motion.div>
+              <div className="taste-photo-frame">
+                <img 
+                  src="/images/runner-action.jpg" 
+                  alt="Athletic runner pacing outdoors" 
+                  loading="lazy"
+                />
+              </div>
+            </div>
           </div>
         </section>
 
-        <motion.section
-          className="closing-band"
-          aria-labelledby="closing-title"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.55 }}
-        >
-          <div>
-            <motion.h2
-              id="closing-title"
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.4 }}
-              transition={{ duration: 0.45 }}
-            >
-              Take the long way home.
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.4 }}
-              transition={{ duration: 0.45, delay: 0.08 }}
-            >
-              Make a route, claim a little ground, and give yourself a reason to head out again.
-            </motion.p>
+        {/* Screen 5: Closing Action Band */}
+        <section className="closing-band" aria-labelledby="closing-title">
+          <div className="closing-lead-col">
+            <h2 id="closing-title">Take the long way home.</h2>
+            <p>Make a route, claim a little ground, and give yourself a reason to head out again.</p>
             <div className="closing-action">
               <p>Your map begins with one route.</p>
               <Link href="/register" className="closing-link">Create your account <ArrowRight aria-hidden="true" /></Link>
             </div>
           </div>
-          <div className="starter-preview" data-ui aria-label="New StepClaim dashboard preview">
+
+          <div className="starter-preview" data-ui aria-label="StepClaim starter overview">
             <div className="starter-preview-heading">
               <div>
                 <h3>Overview</h3>
@@ -407,15 +318,21 @@ export default function LandingPage() {
                 <div className="starter-progress"><span /></div>
               </div>
             </div>
-            <p className="starter-empty">No recent activity yet. Start running!</p>
+            <p className="starter-empty">No recent activity yet. Start running.</p>
           </div>
-        </motion.section>
+        </section>
       </main>
 
       <footer className="landing-footer">
-        <Link href="/" className="footer-brand"><span className="landing-mark"><Hexagon aria-hidden="true" /></span>StepClaim</Link>
-        <p>Movement makes the map.</p>
-        <div><Link href="/login">Log in</Link><Link href="/register">Create account</Link></div>
+        <div className="footer-main-row">
+          <Link href="/" className="footer-brand"><span className="landing-mark"><Hexagon aria-hidden="true" /></span>StepClaim</Link>
+          <p className="footer-motto">Movement makes the map.</p>
+          <div className="footer-nav-links">
+            <Link href="/login">Log in</Link>
+            <Link href="/register">Create account</Link>
+          </div>
+        </div>
+        <p className="footer-credits">Photos and composites licensed for StepClaim.</p>
       </footer>
     </div>
   );

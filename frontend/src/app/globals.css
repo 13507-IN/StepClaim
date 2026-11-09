@@ -1259,6 +1259,185 @@ a {
   display: none !important;
 }
 
+/* ─── Aesthetic Landing Visual Enhancements ───────────────────────────── */
+.hero-art {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-mockup-wrapper {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 90%;
+  max-height: 520px;
+  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.75));
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-mockup-wrapper:hover {
+  transform: translateY(-6px) scale(1.02);
+}
+
+.phone-glow {
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.28) 0%, rgba(252, 76, 2, 0.15) 50%, transparent 75%);
+  filter: blur(28px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.hero-phone-img {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 36px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+}
+
+.floating-badge {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  background: rgba(10, 15, 23, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  color: #f8fafc;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  animation: float-gentle 4s ease-in-out infinite alternate;
+}
+
+.badge-top {
+  top: 15%;
+  left: -20px;
+  animation-delay: 0s;
+}
+
+.badge-bottom {
+  bottom: 12%;
+  right: -20px;
+  animation-delay: 2s;
+}
+
+@keyframes float-gentle {
+  0% { transform: translateY(0px); }
+  100% { transform: translateY(-8px); }
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #34d399;
+  box-shadow: 0 0 10px #34d399;
+}
+
+/* Visual Showcase Cards in Sections */
+.aesthetic-media-card {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+  transition: transform 0.4s ease, border-color 0.4s ease;
+}
+
+.aesthetic-media-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(114, 221, 210, 0.4);
+}
+
+.aesthetic-media-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.aesthetic-media-card:hover img {
+  transform: scale(1.04);
+}
+
+.card-glass-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(7, 16, 17, 0.95) 0%, rgba(7, 16, 17, 0.4) 50%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 24px;
+}
+
+.card-pill-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.tag-sunrise {
+  background: rgba(251, 146, 60, 0.2);
+  color: #fb923c;
+  border: 1px solid rgba(251, 146, 60, 0.4);
+}
+
+.tag-athlete {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.tag-device {
+  background: rgba(52, 211, 153, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.4);
+}
+
+/* Gallery Showcase Grid */
+.landing-gallery-section {
+  width: min(100% - 64px, 1320px);
+  margin: 120px auto;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 28px;
+  margin-top: 48px;
+}
+
+@media (max-width: 768px) {
+  .badge-top {
+    left: 4px;
+    top: 5%;
+  }
+  .badge-bottom {
+    right: 4px;
+    bottom: 5%;
+  }
+  .hero-mockup-wrapper {
+    max-height: 420px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

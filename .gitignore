@@ -19,3 +19,7 @@ npm-debug.log*
 .idea/
 *.sublime-project
 *.sublime-workspace
+
+# Skills & Temp
+.taste-skill/
+frontend/.taste-skill/

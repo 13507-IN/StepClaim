@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { ArrowDown, ArrowRight, Footprints, Hexagon, Route } from 'lucide-react';
+import { ArrowDown, ArrowRight, Footprints, Hexagon, Route, Sparkles, Compass, Flame } from 'lucide-react';
 import { TerritoryShader } from '@/components/landing/territory-shader';
 
 const demoStages = [
@@ -74,24 +74,26 @@ export default function LandingPage() {
             transition={{ duration: 0.8, delay: 0.08, ease: [0.22, 0.7, 0.2, 1] }}
           >
             <TerritoryShader />
-            <div className="map-grid" aria-hidden="true">
-              <span className="map-cell map-cell-1" />
-              <span className="map-cell map-cell-2" />
-              <span className="map-cell map-cell-3" />
-              <span className="map-cell map-cell-4" />
-              <span className="map-cell map-cell-5" />
-              <span className="map-cell map-cell-6" />
-              <span className="map-cell map-cell-7" />
-              <span className="map-cell map-cell-8" />
+            
+            {/* Real Smartphone Mockup showing StepClaim in Hand */}
+            <div className="hero-mockup-wrapper">
+              <div className="phone-glow" />
+              <img 
+                src="/images/phone-mockup.png" 
+                alt="Person holding smartphone tracking outdoor route and conquered territories live with StepClaim" 
+                className="hero-phone-img"
+              />
+              <div className="floating-badge badge-top">
+                <span className="pulse-dot" />
+                <span>GPS Live Track • 3.42 km</span>
+              </div>
+              <div className="floating-badge badge-bottom">
+                <Hexagon className="w-3.5 h-3.5 text-[#38bdf8]" />
+                <span>4 Territories Claimed</span>
+              </div>
             </div>
-            <svg className="hero-route" viewBox="0 0 760 560" fill="none" aria-hidden="true">
-              <path className="route-shadow" d="M94 438C179 419 159 352 245 338C329 323 321 254 402 247C480 241 479 173 556 163C612 156 625 119 675 98" />
-              <path className="route-line" pathLength="1" d="M94 438C179 419 159 352 245 338C329 323 321 254 402 247C480 241 479 173 556 163C612 156 625 119 675 98" />
-              <circle className="route-start" cx="94" cy="438" r="7" />
-              <circle className="route-end" cx="675" cy="98" r="9" />
-              <circle className="route-end-ring" cx="675" cy="98" r="19" />
-            </svg>
-            <div className="art-caption" data-ui><span>Sample route</span><span>One more way through the city</span></div>
+
+            <div className="art-caption" data-ui><span>Real-Time GPS Tracking</span><span>Your phone becomes your conquest console</span></div>
             <div className="art-key"><span /><span>Territory claimed</span></div>
           </motion.div>
           <motion.div
@@ -258,6 +260,94 @@ export default function LandingPage() {
               <p>{selectedMode.description}</p>
             </div>
           </motion.div>
+        </section>
+
+        {/* Aesthetic Visual Gallery Showcase */}
+        <section className="landing-gallery-section" aria-labelledby="gallery-title">
+          <div className="section-intro">
+            <motion.h2
+              id="gallery-title"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.35 }}
+              transition={{ duration: 0.45 }}
+            >
+              Real movement. Real world.
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.35 }}
+              transition={{ duration: 0.45, delay: 0.08 }}
+            >
+              From sunrise loops to high-cadence strides, every outing expands your territory map.
+            </motion.p>
+          </div>
+
+          <div className="gallery-grid">
+            {/* Card 1: Hand holding Phone with StepClaim */}
+            <motion.div
+              className="aesthetic-media-card h-[400px]"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5 }}
+            >
+              <img 
+                src="/images/phone-mockup.png" 
+                alt="Smartphone running StepClaim live tracking in hand" 
+              />
+              <div className="card-glass-overlay">
+                <span className="card-pill-tag tag-device">
+                  <Sparkles className="w-3 h-3 mr-1" /> Live Companion
+                </span>
+                <h3 className="text-xl font-bold text-white tracking-tight">The City in Your Hand</h3>
+                <p className="text-sm text-gray-300 mt-1">Real-time GPS tracking with H3 hexagonal conquest right in your mobile browser.</p>
+              </div>
+            </motion.div>
+
+            {/* Card 2: Morning Trail Sunrise */}
+            <motion.div
+              className="aesthetic-media-card h-[400px]"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <img 
+                src="/images/morning-trail.jpg" 
+                alt="Sunlit morning running trail under green trees" 
+              />
+              <div className="card-glass-overlay">
+                <span className="card-pill-tag tag-sunrise">
+                  <Compass className="w-3 h-3 mr-1" /> Golden Hour Routes
+                </span>
+                <h3 className="text-xl font-bold text-white tracking-tight">Dawn Patrol Loops</h3>
+                <p className="text-sm text-gray-300 mt-1">Transform quiet morning paths and tree-lined neighborhood streets into claimed zones.</p>
+              </div>
+            </motion.div>
+
+            {/* Card 3: Runner in Action */}
+            <motion.div
+              className="aesthetic-media-card h-[400px]"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <img 
+                src="/images/runner-action.jpg" 
+                alt="Athletic runner pacing outdoors" 
+              />
+              <div className="card-glass-overlay">
+                <span className="card-pill-tag tag-athlete">
+                  <Flame className="w-3 h-3 mr-1" /> Pace & Power
+                </span>
+                <h3 className="text-xl font-bold text-white tracking-tight">Built for Real Athletes</h3>
+                <p className="text-sm text-gray-300 mt-1">Push your race pace, earn XP per 100 meters, level up, and maintain your daily streak.</p>
+              </div>
+            </motion.div>
+          </div>
         </section>
 
         <motion.section

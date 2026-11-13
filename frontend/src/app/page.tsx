@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { ArrowDown, ArrowRight, Footprints, Hexagon, Route, Sparkles, Compass, Flame } from 'lucide-react';
 import { TerritoryShader } from '@/components/landing/territory-shader';
+import { InteractiveFlowField } from '@/components/landing/interactive-flow-field';
 
 const demoStages = [
   {
@@ -84,7 +85,8 @@ export default function LandingPage() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
           >
-            <TerritoryShader />
+            {/* ThreeUI-inspired Interactive Flow Field Particle System */}
+            <InteractiveFlowField />
             
             {/* Real Smartphone Mockup showing StepClaim in Hand */}
             <div className="hero-mockup-wrapper">

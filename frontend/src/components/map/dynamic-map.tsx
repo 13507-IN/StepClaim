@@ -76,18 +76,19 @@ export function DynamicMap({
 
   const startPoint = routePath.length > 0 ? routePath[0] : null;
 
-  const cartoApiKey = process.env.NEXT_PUBLIC_CARTO_API_KEY;
+  const rawKey = process.env.NEXT_PUBLIC_CARTO_API_KEY?.trim();
+  const hasCartoKey = Boolean(rawKey && rawKey !== 'undefined' && rawKey !== 'null' && rawKey.length > 8);
 
-  // If a CARTO API key is provided, use CARTO raster tiles; otherwise fall back to free OpenStreetMap with dark styling (no key required)
-  const tileUrl = cartoApiKey
-    ? `https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key=${cartoApiKey}`
+  // If a valid CARTO API key is provided, use CARTO raster tiles; otherwise fall back to free OpenStreetMap with dark styling (no key required, no watermarks)
+  const tileUrl = hasCartoKey
+    ? `https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key=${rawKey}`
     : (process.env.NEXT_PUBLIC_MAP_TILE_URL || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
 
-  const tileAttribution = cartoApiKey
+  const tileAttribution = hasCartoKey
     ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
     : (process.env.NEXT_PUBLIC_MAP_ATTRIBUTION || '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors');
 
-  const tileClassName = cartoApiKey ? '' : 'map-tiles-dark';
+  const tileClassName = hasCartoKey ? '' : 'map-tiles-dark';
 
   return (
     <div className="w-full h-full relative rounded-xl overflow-hidden shadow-sm border border-[var(--color-border)]">

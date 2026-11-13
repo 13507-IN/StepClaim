@@ -57,7 +57,12 @@ export class AntiCheatService {
 
     // Speed check based on activity type limits
     const speedLimit = SPEED_LIMITS[activityType];
-    if (speed > speedLimit) {
+    // For very short intervals (< 3 seconds) with small displacements (< 25 meters),
+    // normal smartphone GPS multipath drift can produce apparent instantaneous speed spikes.
+    // Tolerate these sub-second GPS jitter bursts up to 12.5 m/s (vehicle threshold).
+    const isJitterSpike = timeDiffSec < 3 && distance < 25 && speed <= 12.5;
+
+    if (speed > speedLimit && !isJitterSpike) {
       await this.logCheatAttempt(
         userId,
         `Speed limit exceeded for ${activityType}: ${speed.toFixed(1)} m/s (Limit: ${speedLimit} m/s)`,

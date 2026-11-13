@@ -21,10 +21,10 @@ export const XP_RATES = {
 
 // ─── Speed Limits ───────────────────────────────────────────────────────────
 
-/** Maximum allowed speed in meters per second by activity type */
+/** Maximum allowed speed in meters per second by activity type (calibrated to tolerate GPS jitter) */
 export const SPEED_LIMITS = {
-  WALKING: 6,
-  RUNNING: 10,
+  WALKING: 10,
+  RUNNING: 12.5,
   CYCLING: 20,
 } as const;
 

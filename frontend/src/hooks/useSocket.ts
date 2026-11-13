@@ -12,10 +12,10 @@ export function useSocket() {
   useEffect(() => {
     if (!token) return;
 
-    // Connect to backend websocket
+    // Connect to backend websocket with polling fallback for mobile cellular resilience
     const socket = io(process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000', {
       auth: { token },
-      transports: ['websocket'],
+      transports: ['polling', 'websocket'],
     });
     socket.on('connect', () => {
       setIsConnected(true);

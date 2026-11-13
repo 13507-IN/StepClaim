@@ -40,7 +40,7 @@ export function useGPS(active: boolean = true) {
         let quality: SignalQuality = 'POOR';
         if (accuracy <= 15) quality = 'EXCELLENT';
         else if (accuracy <= 30) quality = 'GOOD';
-        else if (accuracy <= 65) quality = 'FAIR';
+        else if (accuracy <= 100) quality = 'FAIR';
         setSignalQuality(quality);
 
         // Convert speed m/s to km/h when provided by the device.
@@ -50,7 +50,7 @@ export function useGPS(active: boolean = true) {
             ? rawSpeed * 3.6
             : null;
 
-        if (accuracy > 65) {
+        if (accuracy > 100) {
           previousAccuratePositionRef.current = null;
         } else {
           const previous = previousAccuratePositionRef.current;
@@ -60,8 +60,8 @@ export function useGPS(active: boolean = true) {
           if (
             speedKmH === null &&
             previous &&
-            accuracy <= 35 &&
-            previous.accuracy <= 35 &&
+            accuracy <= 65 &&
+            previous.accuracy <= 65 &&
             elapsedSeconds >= 2 &&
             elapsedSeconds <= 12
           ) {

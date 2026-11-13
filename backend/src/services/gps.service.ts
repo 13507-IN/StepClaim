@@ -50,8 +50,8 @@ export class GpsService {
     ) {
       return { processed: false, reason: 'invalid_coordinates' };
     }
-    // Allow standard mobile browser GPS accuracy (typical urban mobile GPS is 20-65m)
-    if (accuracy > 65) {
+    // Allow standard mobile browser GPS accuracy (typical urban mobile GPS is 20-100m)
+    if (accuracy > 100) {
       return { processed: false, reason: 'poor_accuracy' };
     }
 

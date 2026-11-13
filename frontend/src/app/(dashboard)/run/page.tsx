@@ -56,7 +56,7 @@ export default function LiveRunPage() {
   // Request GPS when component mounts
   const { location, error, loading: gpsLoading, signalQuality } = useGPS(true);
   const estimatedSpeedKmh =
-    location && location.accuracy <= 65 ? location.speed : null;
+    location && location.accuracy <= 100 ? location.speed : null;
   const mapCenter: [number, number] = location
     ? [location.latitude, location.longitude]
     : [28.6139, 77.2090]; // New Delhi fallback
@@ -162,8 +162,11 @@ export default function LiveRunPage() {
   useEffect(() => {
     if (location) {
       const currentPos: [number, number] = [location.latitude, location.longitude];
-      // Mobile GPS Noise Filter: Accept coordinates up to 65 meters (standard smartphone GPS accuracy in cities)
-      if (location.accuracy > 65) {
+      // Mobile GPS Noise Filter: Accept coordinates up to 100 meters (standard smartphone GPS accuracy in cities)
+      if (location.accuracy > 100) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`[GPS] Dropped: accuracy ${location.accuracy.toFixed(0)}m > 100m threshold`);
+        }
         latestSpeedSampleRef.current = null;
         return;
       }

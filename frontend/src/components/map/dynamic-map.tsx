@@ -192,13 +192,22 @@ export function DynamicMap({
           </CircleMarker>
         ))}
 
-        {/* User Location Marker & Pulse Indicator */}
-        <Marker position={center} />
+        {/* User Location Live Vector Indicator (Clean SVG/Canvas dot, zero external image requests, never shows broken image) */}
+        <CircleMarker 
+          center={center} 
+          radius={11} 
+          pathOptions={{ fillColor: '#38bdf8', color: '#38bdf8', weight: 1.5, fillOpacity: 0.3 }} 
+        />
+        <CircleMarker 
+          center={center} 
+          radius={6.5} 
+          pathOptions={{ fillColor: '#0284c7', color: '#ffffff', weight: 2.5, fillOpacity: 1 }} 
+        />
         
         {/* User Location accuracy circle indicator */}
         <Circle 
           center={center} 
-          pathOptions={{ fillColor: trackColor, color: trackColor, weight: 1, fillOpacity: 0.15 }} 
+          pathOptions={{ fillColor: trackColor, color: trackColor, weight: 1, fillOpacity: 0.12, dashArray: '3, 5' }} 
           radius={Math.min(Math.max(accuracy, 10), 80)} 
         />
       </MapContainer>

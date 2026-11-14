@@ -5,10 +5,10 @@ import Link from 'next/link';
 import { DynamicMap } from '@/components/map/dynamic-map';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, Clock, Flame, Gauge, Navigation, Route } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Flame, Gauge, Navigation, Route, Footprints } from 'lucide-react';
 import { runService, RunDetailItem } from '@/services/run.api';
 import { territoryService } from '@/services/territory.api';
-import { useUserStore } from '@/store/useUserStore';
+import { useUserStore, calculateSteps, calculateCalories } from '@/store/useUserStore';
 import { calculateDistance } from '@/lib/utils';
 
 export default function RunDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -194,47 +194,73 @@ export default function RunDetailPage({ params }: { params: Promise<{ id: string
       </div>
 
       {/* Stat Summaries Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card className="glass-panel border-l-4 border-l-[#FC4C02]">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-gray-400 tracking-wider">Distance</CardTitle>
-            <Navigation className="h-4 w-4 text-[#FC4C02]" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-black text-white">{run.distance.toFixed(2)} <span className="text-sm font-normal text-gray-400">km</span></div>
-          </CardContent>
-        </Card>
+      {(() => {
+        const runSteps = calculateSteps(run.distance, currentUser?.height || 175, 'WALKING');
+        const runCalories = calculateCalories(run.distance, currentUser?.weight || 70, 'WALKING');
+        return (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+            <Card className="glass-panel border-l-4 border-l-amber-400">
+              <CardHeader className="flex flex-row items-center justify-between pb-1.5 p-3.5">
+                <CardTitle className="text-[10px] font-semibold uppercase text-gray-400 tracking-wider">Footsteps</CardTitle>
+                <Footprints className="h-4 w-4 text-amber-400" />
+              </CardHeader>
+              <CardContent className="p-3.5 pt-0">
+                <div className="text-xl md:text-2xl font-black text-white">{runSteps.toLocaleString()}</div>
+              </CardContent>
+            </Card>
 
-        <Card className="glass-panel border-l-4 border-l-sky-400">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-gray-400 tracking-wider">Moving Time</CardTitle>
-            <Clock className="h-4 w-4 text-sky-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-black text-white">{formatDuration(run.duration)}</div>
-          </CardContent>
-        </Card>
+            <Card className="glass-panel border-l-4 border-l-[#FC4C02]">
+              <CardHeader className="flex flex-row items-center justify-between pb-1.5 p-3.5">
+                <CardTitle className="text-[10px] font-semibold uppercase text-gray-400 tracking-wider">Distance</CardTitle>
+                <Navigation className="h-4 w-4 text-[#FC4C02]" />
+              </CardHeader>
+              <CardContent className="p-3.5 pt-0">
+                <div className="text-xl md:text-2xl font-black text-white">{run.distance.toFixed(2)} <span className="text-xs font-normal text-gray-400">km</span></div>
+              </CardContent>
+            </Card>
 
-        <Card className="glass-panel border-l-4 border-l-emerald-400">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-gray-400 tracking-wider">Avg Pace</CardTitle>
-            <Gauge className="h-4 w-4 text-emerald-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-black text-white">{avgPaceString()}</div>
-          </CardContent>
-        </Card>
+            <Card className="glass-panel border-l-4 border-l-sky-400">
+              <CardHeader className="flex flex-row items-center justify-between pb-1.5 p-3.5">
+                <CardTitle className="text-[10px] font-semibold uppercase text-gray-400 tracking-wider">Moving Time</CardTitle>
+                <Clock className="h-4 w-4 text-sky-400" />
+              </CardHeader>
+              <CardContent className="p-3.5 pt-0">
+                <div className="text-xl md:text-2xl font-black text-white">{formatDuration(run.duration)}</div>
+              </CardContent>
+            </Card>
 
-        <Card className="glass-panel border-l-4 border-l-amber-400">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-gray-400 tracking-wider">Avg Speed</CardTitle>
-            <Flame className="h-4 w-4 text-amber-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-black text-white">{avgSpeedKmH} <span className="text-sm font-normal text-gray-400">km/h</span></div>
-          </CardContent>
-        </Card>
-      </div>
+            <Card className="glass-panel border-l-4 border-l-emerald-400">
+              <CardHeader className="flex flex-row items-center justify-between pb-1.5 p-3.5">
+                <CardTitle className="text-[10px] font-semibold uppercase text-gray-400 tracking-wider">Avg Pace</CardTitle>
+                <Gauge className="h-4 w-4 text-emerald-400" />
+              </CardHeader>
+              <CardContent className="p-3.5 pt-0">
+                <div className="text-xl md:text-2xl font-black text-white">{avgPaceString()}</div>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-panel border-l-4 border-l-teal-400">
+              <CardHeader className="flex flex-row items-center justify-between pb-1.5 p-3.5">
+                <CardTitle className="text-[10px] font-semibold uppercase text-gray-400 tracking-wider">Avg Speed</CardTitle>
+                <Flame className="h-4 w-4 text-teal-400" />
+              </CardHeader>
+              <CardContent className="p-3.5 pt-0">
+                <div className="text-xl md:text-2xl font-black text-white">{avgSpeedKmH} <span className="text-xs font-normal text-gray-400">km/h</span></div>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-panel border-l-4 border-l-rose-400">
+              <CardHeader className="flex flex-row items-center justify-between pb-1.5 p-3.5">
+                <CardTitle className="text-[10px] font-semibold uppercase text-gray-400 tracking-wider">Calories</CardTitle>
+                <Flame className="h-4 w-4 text-rose-400" />
+              </CardHeader>
+              <CardContent className="p-3.5 pt-0">
+                <div className="text-xl md:text-2xl font-black text-white">{runCalories} <span className="text-xs font-normal text-gray-400">kcal</span></div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      })()}
 
       {/* KM Splits Table */}
       {splits.length > 0 && (

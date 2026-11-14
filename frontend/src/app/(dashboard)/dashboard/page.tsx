@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Activity, Hexagon, Route } from 'lucide-react';
+import { Activity, Hexagon, Route, Footprints } from 'lucide-react';
 import Link from 'next/link';
-import { useUserStore } from '@/store/useUserStore';
+import { useUserStore, calculateSteps } from '@/store/useUserStore';
 import { runService, RunHistoryItem } from '@/services/run.api';
 import { territoryService, Territory } from '@/services/territory.api';
 
@@ -90,50 +90,64 @@ export default function DashboardOverview() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-5 gap-3 sm:gap-4">
         <Card className="border-[#20282b] bg-[#121719]">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-[#b4b4b4]">Total distance</CardTitle>
+          <CardHeader className="pb-1 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-[#b4b4b4]">Total distance</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="mt-2 text-2xl font-semibold tracking-tight text-white">{user.totalDistance?.toFixed(2) || '0.00'} <span className="text-sm font-medium text-[#949494]">km</span></div>
-            <p className="mt-2 text-xs text-[#949494]">All-time distance</p>
+            <div className="mt-1 sm:mt-2 text-xl sm:text-2xl font-semibold tracking-tight text-white">{user.totalDistance?.toFixed(2) || '0.00'} <span className="text-xs sm:text-sm font-medium text-[#949494]">km</span></div>
+            <p className="mt-1 sm:mt-2 text-[10px] sm:text-xs text-[#949494]">All-time distance</p>
           </CardContent>
         </Card>
 
         <Card className="border-[#20282b] bg-[#121719]">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-[#b4b4b4]">Territories</CardTitle>
+          <CardHeader className="pb-1 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-amber-400 flex items-center gap-1.5">
+              <Footprints className="w-3.5 h-3.5" /> Total footsteps
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="mt-2 text-2xl font-semibold tracking-tight text-white">{user.territoryCount || 0}</div>
-            <p className="mt-2 text-xs text-[#949494]">Currently in your collection</p>
+            <div className="mt-1 sm:mt-2 text-xl sm:text-2xl font-semibold tracking-tight text-white font-mono">
+              {calculateSteps(user.totalDistance || 0, user.height || 175).toLocaleString()}
+            </div>
+            <p className="mt-1 sm:mt-2 text-[10px] sm:text-xs text-[#949494]">Calculated from stride</p>
           </CardContent>
         </Card>
 
         <Card className="border-[#20282b] bg-[#121719]">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-[#b4b4b4]">Active streak</CardTitle>
+          <CardHeader className="pb-1 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-[#b4b4b4]">Territories</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="mt-2 text-2xl font-semibold tracking-tight text-white">{user.streak || 0} <span className="text-sm font-medium text-[#949494]">days</span></div>
-            <p className="mt-2 text-xs text-[#949494]">Keep your momentum going</p>
+            <div className="mt-1 sm:mt-2 text-xl sm:text-2xl font-semibold tracking-tight text-white">{user.territoryCount || 0}</div>
+            <p className="mt-1 sm:mt-2 text-[10px] sm:text-xs text-[#949494]">In your collection</p>
           </CardContent>
         </Card>
 
         <Card className="border-[#20282b] bg-[#121719]">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-[#b4b4b4]">Level</CardTitle>
+          <CardHeader className="pb-1 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-[#b4b4b4]">Active streak</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="mt-2 text-2xl font-semibold tracking-tight text-white">{user.level || 1}</div>
-            <div className="flex items-center gap-3 mt-3">
+            <div className="mt-1 sm:mt-2 text-xl sm:text-2xl font-semibold tracking-tight text-white">{user.streak || 0} <span className="text-xs sm:text-sm font-medium text-[#949494]">days</span></div>
+            <p className="mt-1 sm:mt-2 text-[10px] sm:text-xs text-[#949494]">Keep momentum</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-[#20282b] bg-[#121719] col-span-2 sm:col-span-1">
+          <CardHeader className="pb-1 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-[#b4b4b4]">Level</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="mt-1 sm:mt-2 text-xl sm:text-2xl font-semibold tracking-tight text-white">{user.level || 1}</div>
+            <div className="flex items-center gap-3 mt-2 sm:mt-3">
               <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
                 <div className="h-full rounded-full bg-[var(--color-primary)]" style={{ width: `${xpProgress}%` }} />
               </div>
-              <span className="text-xs font-medium text-[#b4b4b4]">{Math.floor(xpProgress)}%</span>
+              <span className="text-[10px] sm:text-xs font-medium text-[#b4b4b4]">{Math.floor(xpProgress)}%</span>
             </div>
-            <p className="mt-2 text-xs text-[#949494]">Progress to next level</p>
+            <p className="mt-1 sm:mt-2 text-[10px] sm:text-xs text-[#949494]">Level progress</p>
           </CardContent>
         </Card>
       </div>

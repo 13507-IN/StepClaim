@@ -4,12 +4,13 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { DynamicMap } from '@/components/map/dynamic-map';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Play, Square, Pause, Gauge, Timer, Flame, Navigation } from 'lucide-react';
+import { Play, Square, Pause, Gauge, Timer, Flame, Navigation, Footprints, Settings2 } from 'lucide-react';
 import { useGPS } from '@/hooks/useGPS';
 import { calculateDistance } from '@/lib/utils';
 
 import { useRouter } from 'next/navigation';
-import { useUserStore } from '@/store/useUserStore';
+import { useUserStore, calculateSteps, calculateCalories, calculateStepLength } from '@/store/useUserStore';
+import { BodyProfileModal } from '@/components/profile/body-profile-modal';
 import { useSocket } from '@/hooks/useSocket';
 import { runService } from '@/services/run.api';
 import { authService } from '@/services/auth.api';
@@ -52,6 +53,7 @@ export default function LiveRunPage() {
   const [startError, setStartError] = useState<string | null>(null);
 
   const [capturedTerritories, setCapturedTerritories] = useState<string[]>([]);
+  const [isBodyModalOpen, setIsBodyModalOpen] = useState(false);
 
   // Request GPS when component mounts
   const { location, error, loading: gpsLoading, signalQuality } = useGPS(true);
@@ -439,63 +441,76 @@ export default function LiveRunPage() {
     }
   };
 
+  const userHeight = user?.height || 175;
+  const userWeight = user?.weight || 70;
+  const liveSteps = calculateSteps(distance, userHeight, activityTypeRef.current);
+  const liveCalories = calculateCalories(distance, userWeight, activityTypeRef.current);
+  const strideLengthMeters = calculateStepLength(userHeight, activityTypeRef.current);
+
   return (
-    <div className="flex flex-col h-full w-full relative p-4 gap-4">
-      {/* Header Overlay */}
-      <div className="absolute top-8 left-8 z-10 flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-extrabold text-white drop-shadow-md tracking-tight flex items-center gap-2">
-            Live Tracker
-          </h1>
-          {gpsLoading && (
-            <span className="text-xs font-medium text-[var(--color-primary)] animate-pulse border border-[var(--color-primary)]/50 bg-black/60 backdrop-blur px-2.5 py-1 rounded-full">
-              Finding GPS...
+    <div className="flex flex-col h-[calc(100dvh-4rem-4.5rem)] md:h-full w-full relative p-2 md:p-4 gap-2 md:gap-4 overflow-hidden">
+      {/* Top Floating Controls Bar (Avoids top-left zoom controls, sleek & non-overlapping) */}
+      <div className="absolute top-3 left-14 right-3 z-[400] flex items-center justify-between pointer-events-none gap-2">
+        <div className="flex items-center gap-1.5 pointer-events-auto">
+          {gpsLoading ? (
+            <span className="text-[11px] font-semibold text-[var(--color-primary)] animate-pulse border border-[var(--color-primary)]/40 bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-full shadow-lg">
+              Acquiring GPS…
             </span>
-          )}
-          {!gpsLoading && (
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border backdrop-blur ${getSignalBadgeColor()}`}>
+          ) : (
+            <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border backdrop-blur-md shadow-lg ${getSignalBadgeColor()}`}>
               GPS {signalQuality}
             </span>
           )}
+
           {isConnected && (
-            <span className="text-xs font-semibold text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 backdrop-blur px-2.5 py-1 rounded-full flex items-center gap-1">
+            <span className="text-[11px] font-semibold text-emerald-400 border border-emerald-500/30 bg-black/80 backdrop-blur-md px-2 py-1 rounded-full flex items-center gap-1 shadow-lg">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-              Live Sync
+              Live
             </span>
           )}
         </div>
-        {error ? (
-          <p className="text-sm text-red-400 drop-shadow-sm max-w-sm bg-black/70 p-2 rounded-lg border border-red-500/30">{error}</p>
-        ) : (
-          <p className="text-sm text-gray-300 drop-shadow-sm">Real-time Strava-grade path recording & H3 territory conquest.</p>
-        )}
-        <p className="w-fit rounded-full border border-white/10 bg-black/60 px-3 py-1 text-xs font-medium text-gray-200 backdrop-blur">
-          Speed-based estimate: <span className="font-bold text-white">{activityEstimateLabel}</span>
-        </p>
-        <p className="text-xs text-gray-400">
-          Speed-only estimate; a very fast cyclist may be mistaken for a vehicle.
-        </p>
-        {vehicleWarningActive && (
-          <p
-            role="alert"
-            aria-live="assertive"
-            className="max-w-md rounded-xl border border-red-400/60 bg-red-950/90 px-4 py-3 text-sm font-bold text-red-100 shadow-xl"
-          >
-            Vehicle-like speed detected ({estimatedSpeedKmh?.toFixed(1)} km/h). Slow down.
-            {vehicleAlertCount < 3
-              ? ` Alert ${vehicleAlertCount} of 3; another warning comes every 10 seconds.`
-              : ' Three warnings reached — stopping your workout…'}
-          </p>
-        )}
-        {stopError && (
-          <p role="alert" className="max-w-md rounded-lg border border-red-500/40 bg-black/80 px-3 py-2 text-sm text-red-300">
-            {stopError}
-          </p>
-        )}
+
+        {/* Body Profile / Stride pill */}
+        <button
+          onClick={() => setIsBodyModalOpen(true)}
+          className="pointer-events-auto flex items-center gap-1.5 text-[11px] font-semibold bg-black/80 hover:bg-black/95 text-gray-200 border border-white/15 backdrop-blur-md px-2.5 py-1 rounded-full shadow-lg transition-colors cursor-pointer"
+          title="Click to customize height & weight for stride calibration"
+        >
+          <Footprints className="w-3.5 h-3.5 text-amber-400" />
+          <span>{Math.round(strideLengthMeters * 100)}cm stride</span>
+          <Settings2 className="w-3 h-3 text-gray-400 ml-0.5" />
+        </button>
       </div>
 
+      {/* Warning & Alerts floating container */}
+      {(vehicleWarningActive || stopError || error) && (
+        <div className="absolute top-12 inset-x-4 z-[400] flex flex-col gap-1.5 pointer-events-none items-center">
+          {vehicleWarningActive && (
+            <div
+              role="alert"
+              className="pointer-events-auto max-w-sm w-full rounded-xl border border-red-500/50 bg-red-950/95 px-3 py-2 text-xs font-bold text-red-100 shadow-2xl backdrop-blur"
+            >
+              ⚠️ Vehicle speed detected ({estimatedSpeedKmh?.toFixed(1)} km/h). Slow down.
+              {vehicleAlertCount < 3
+                ? ` (${vehicleAlertCount}/3 warnings)`
+                : ' Stopping workout…'}
+            </div>
+          )}
+          {stopError && (
+            <div role="alert" className="pointer-events-auto max-w-sm w-full rounded-xl border border-red-500/40 bg-black/90 px-3 py-2 text-xs text-red-300 backdrop-blur">
+              {stopError}
+            </div>
+          )}
+          {error && (
+            <div className="pointer-events-auto max-w-sm w-full text-xs text-red-400 bg-black/90 p-2 rounded-xl border border-red-500/30 backdrop-blur">
+              {error}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Map Container */}
-      <div className="flex-1 w-full relative rounded-2xl overflow-hidden shadow-2xl border border-[var(--color-border)]">
+      <div className="flex-1 w-full min-h-[220px] relative rounded-2xl overflow-hidden shadow-2xl border border-[var(--color-border)]">
         <DynamicMap 
           center={mapCenter} 
           interactive={true} 
@@ -508,121 +523,181 @@ export default function LiveRunPage() {
       </div>
 
       {/* Telemetry Dashboard & Run Controls */}
-      <Card className="glass-panel shrink-0 p-5 sticky bottom-4 shadow-2xl border-white/10">
-        <CardContent className="p-0 flex flex-col gap-4">
-          {/* Top Activity Selector (When Not Running) */}
-          {!isRunning && !activeRunId && (
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Activity Mode</span>
-              <div className="flex items-center gap-2 bg-black/30 p-1 rounded-lg border border-white/5">
-                {(['WALKING', 'RUNNING', 'CYCLING'] as ActivityType[]).map((type) => (
-                  <button
-                    key={type}
-                    onClick={() => setActivityType(type)}
-                    className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${
-                      activityType === type
-                        ? 'bg-[var(--color-primary)] text-white shadow-md'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    {type}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+      <Card className="glass-panel shrink-0 p-3 md:p-4 shadow-2xl border-white/10 rounded-2xl">
+        <CardContent className="p-0 flex flex-col gap-3">
+          {/* Top Activity Selector & Status Bar */}
+          <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+            {!isRunning && !activeRunId ? (
+              <>
+                <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Mode</span>
+                <div className="flex items-center gap-1 bg-black/40 p-0.5 rounded-lg border border-white/5">
+                  {(['WALKING', 'RUNNING', 'CYCLING'] as ActivityType[]).map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => setActivityType(type)}
+                      className={`px-2.5 py-1 text-[11px] font-bold rounded-md transition-all ${
+                        activityType === type
+                          ? 'bg-[var(--color-primary)] text-white shadow-sm'
+                          : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-between w-full">
+                <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1.5 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  {isPaused ? 'Workout Paused' : 'Recording Path'}
+                </span>
 
-          {/* Telemetry Grid */}
-          <div className="grid grid-cols-4 gap-4 text-center">
-            {/* Timer */}
-            <div className="flex flex-col items-center">
-              <span className="text-xs font-medium text-gray-400 flex items-center gap-1 uppercase tracking-wider">
-                <Timer className="w-3.5 h-3.5 text-sky-400" /> Time
+                <span className="text-[11px] font-semibold text-gray-300 bg-white/5 px-2.5 py-1 rounded-full border border-white/10">
+                  {activityType}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Primary Hero Metrics: Steps & Distance */}
+          <div className="grid grid-cols-2 gap-2 text-center bg-black/30 p-2.5 rounded-xl border border-white/5">
+            {/* Live Steps */}
+            <div className="flex flex-col items-center justify-center border-r border-white/10 pr-2">
+              <span className="text-[10px] md:text-xs font-semibold text-amber-400 flex items-center gap-1 uppercase tracking-wider">
+                <Footprints className="w-3.5 h-3.5 text-amber-400" /> Footsteps
               </span>
-              <span className="text-2xl font-black tracking-tight text-white mt-1">{formatTimer(durationSeconds)}</span>
+              <span className="text-2xl md:text-3xl font-black tracking-tight text-white mt-0.5 font-mono">
+                {liveSteps.toLocaleString()}
+              </span>
+              <span className="text-[9px] text-gray-400">
+                ~{Math.round(strideLengthMeters * 100)}cm stride
+              </span>
             </div>
 
             {/* Distance */}
-            <div className="flex flex-col items-center">
-              <span className="text-xs font-medium text-gray-400 flex items-center gap-1 uppercase tracking-wider">
+            <div className="flex flex-col items-center justify-center pl-2">
+              <span className="text-[10px] md:text-xs font-semibold text-[#FC4C02] flex items-center gap-1 uppercase tracking-wider">
                 <Navigation className="w-3.5 h-3.5 text-[#FC4C02]" /> Distance
               </span>
-              <span className="text-2xl font-black tracking-tight text-[#FC4C02] mt-1">{distance.toFixed(2)} <span className="text-xs font-normal text-gray-400">km</span></span>
+              <span className="text-2xl md:text-3xl font-black tracking-tight text-[#FC4C02] mt-0.5 font-mono">
+                {distance.toFixed(2)} <span className="text-xs font-normal text-gray-400">km</span>
+              </span>
+              <span className="text-[9px] text-gray-400">
+                {(distance * 1000).toFixed(0)} meters
+              </span>
+            </div>
+          </div>
+
+          {/* Secondary Telemetry: 4 balanced compact columns */}
+          <div className="grid grid-cols-4 gap-1.5 text-center py-0.5">
+            {/* Timer */}
+            <div className="flex flex-col items-center bg-white/[0.02] p-1.5 rounded-lg border border-white/5">
+              <span className="text-[9px] md:text-[10px] font-medium text-gray-400 flex items-center gap-0.5 uppercase tracking-wider">
+                <Timer className="w-2.5 h-2.5 text-sky-400" /> Time
+              </span>
+              <span className="text-sm md:text-base font-bold text-white mt-0.5 font-mono">
+                {formatTimer(durationSeconds)}
+              </span>
             </div>
 
-            {/* Avg / Live Pace */}
-            <div className="flex flex-col items-center">
-              <span className="text-xs font-medium text-gray-400 flex items-center gap-1 uppercase tracking-wider">
-                <Gauge className="w-3.5 h-3.5 text-emerald-400" /> Pace
+            {/* Pace */}
+            <div className="flex flex-col items-center bg-white/[0.02] p-1.5 rounded-lg border border-white/5">
+              <span className="text-[9px] md:text-[10px] font-medium text-gray-400 flex items-center gap-0.5 uppercase tracking-wider">
+                <Gauge className="w-2.5 h-2.5 text-emerald-400" /> Pace
               </span>
-              <span className="text-2xl font-black tracking-tight text-white mt-1">{getPaceString()} <span className="text-xs font-normal text-gray-400">/km</span></span>
+              <span className="text-sm md:text-base font-bold text-white mt-0.5 font-mono">
+                {getPaceString()}
+              </span>
             </div>
 
             {/* Live Speed */}
-            <div className="flex flex-col items-center">
-              <span className="text-xs font-medium text-gray-400 flex items-center gap-1 uppercase tracking-wider">
-                <Flame className="w-3.5 h-3.5 text-amber-400" /> Speed
+            <div className="flex flex-col items-center bg-white/[0.02] p-1.5 rounded-lg border border-white/5">
+              <span className="text-[9px] md:text-[10px] font-medium text-gray-400 flex items-center gap-0.5 uppercase tracking-wider">
+                <Flame className="w-2.5 h-2.5 text-amber-400" /> Speed
               </span>
-              <span className="text-2xl font-black tracking-tight text-white mt-1">{currentSpeed} <span className="text-xs font-normal text-gray-400">km/h</span></span>
+              <span className="text-sm md:text-base font-bold text-white mt-0.5 font-mono">
+                {currentSpeed} <span className="text-[9px] text-gray-400 font-normal">km/h</span>
+              </span>
+            </div>
+
+            {/* Live Calories */}
+            <div className="flex flex-col items-center bg-white/[0.02] p-1.5 rounded-lg border border-white/5">
+              <span className="text-[9px] md:text-[10px] font-medium text-rose-400 flex items-center gap-0.5 uppercase tracking-wider">
+                <Flame className="w-2.5 h-2.5 text-rose-400" /> Cal
+              </span>
+              <span className="text-sm md:text-base font-bold text-white mt-0.5 font-mono">
+                {liveCalories} <span className="text-[9px] text-gray-400 font-normal">kcal</span>
+              </span>
             </div>
           </div>
 
           {/* Start Error Feedback */}
           {startError && (
-            <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-2 rounded-lg text-center font-medium">
+            <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-lg text-center font-medium">
               ⚠️ {startError}
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-2 border-t border-white/10">
+          {/* Action Buttons (Touch-friendly, full width, no mobile overlap) */}
+          <div className="pt-1">
             {!isRunning ? (
               activeRunId ? (
-                <Button size="lg" variant="destructive" className="rounded-full shadow-lg font-bold px-6" onClick={handleStopRun} disabled={isProcessing}>
-                  <Square className="h-5 w-5 mr-2 fill-current" />
-                  {isProcessing ? 'Saving...' : 'Retry Finish'}
+                <Button 
+                  size="lg" 
+                  variant="destructive" 
+                  className="w-full h-11 rounded-xl shadow-lg font-bold text-sm" 
+                  onClick={handleStopRun} 
+                  disabled={isProcessing}
+                >
+                  <Square className="h-4 w-4 mr-2 fill-current" />
+                  {isProcessing ? 'Saving Workout…' : 'Retry Finish'}
                 </Button>
               ) : (
-                <Button size="lg" className="rounded-full shadow-lg bg-[#FC4C02] hover:bg-[#e04300] text-white font-bold px-8" onClick={handleStartRun} disabled={isProcessing}>
+                <Button 
+                  size="lg" 
+                  className="w-full h-12 rounded-xl shadow-lg bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-base transition-all" 
+                  onClick={handleStartRun} 
+                  disabled={isProcessing}
+                >
                   <Play className="h-5 w-5 mr-2 fill-current" />
-                  {isProcessing ? 'Starting...' : 'Start Workout'}
+                  {isProcessing ? 'Starting Tracker…' : 'Start Workout'}
                 </Button>
               )
             ) : (
-              <div className="flex items-center gap-3 w-full justify-between">
-                <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  {isPaused ? 'Paused' : 'Recording Path'}
-                </span>
-                
-                <div className="flex items-center gap-2">
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    className="rounded-full border-white/20 hover:bg-white/10" 
-                    onClick={handlePauseToggle} 
-                    disabled={isProcessing}
-                  >
-                    {isPaused ? <Play className="h-5 w-5 mr-1 fill-current text-green-400" /> : <Pause className="h-5 w-5 mr-1 fill-current text-yellow-400" />}
-                    {isPaused ? 'Resume' : 'Pause'}
-                  </Button>
+              <div className="grid grid-cols-2 gap-2.5 w-full">
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="h-11 rounded-xl border-white/20 bg-white/5 hover:bg-white/10 font-bold text-sm" 
+                  onClick={handlePauseToggle} 
+                  disabled={isProcessing}
+                >
+                  {isPaused ? <Play className="h-4 w-4 mr-1.5 fill-current text-green-400" /> : <Pause className="h-4 w-4 mr-1.5 fill-current text-yellow-400" />}
+                  {isPaused ? 'Resume' : 'Pause'}
+                </Button>
 
-                  <Button 
-                    size="lg" 
-                    variant="destructive" 
-                    className="rounded-full shadow-lg font-bold px-6" 
-                    onClick={handleStopRun} 
-                    disabled={isProcessing}
-                  >
-                    <Square className="h-5 w-5 mr-2 fill-current" />
-                    {isProcessing ? 'Saving...' : 'Finish'}
-                  </Button>
-                </div>
+                <Button 
+                  size="lg" 
+                  variant="destructive" 
+                  className="h-11 rounded-xl shadow-lg font-bold bg-rose-600 hover:bg-rose-700 text-white text-sm" 
+                  onClick={handleStopRun} 
+                  disabled={isProcessing}
+                >
+                  <Square className="h-4 w-4 mr-1.5 fill-current" />
+                  {isProcessing ? 'Saving…' : 'Finish'}
+                </Button>
               </div>
             )}
           </div>
         </CardContent>
       </Card>
+
+      {/* Body Profile Calibration Modal */}
+      <BodyProfileModal 
+        isOpen={isBodyModalOpen} 
+        onClose={() => setIsBodyModalOpen(false)} 
+      />
     </div>
   );
 }
